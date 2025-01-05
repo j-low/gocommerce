@@ -6,20 +6,6 @@ const (
 	ProductsAPIVersion = "1.0"
 )
 
-type GetStorePagesRequest struct {
-	Cursor string `json:"cursor"`
-}
-
-type GetStorePagesResponse struct {
-	StorePages []StorePage `json:"storePages"`
-	Pagination Pagination  `json:"pagination"`
-}
-
-type GetProductsResponse struct {
-	Products   []Product   `json:"products"`
-	Pagination Pagination  `json:"pagination"`
-}
-
 type CreateProductRequest struct {
 	Type              string            `json:"type"`
 	StorePageID       string            `json:"storePageId"`
@@ -46,6 +32,79 @@ type CreateProductResponse struct {
 	Variants          []ProductVariant `json:"variants"`
 	Images            []string         `json:"images,omitempty"`
 	CreatedOn         string           `json:"createdOn"`
+}
+
+type CreateVariantRequest struct {
+  ProductID          string                  `json:"-"`
+  SKU                string                  `json:"sku"`
+  Pricing            Pricing                 `json:"pricing"`
+  Stock              *Stock                  `json:"stock,omitempty"`
+  Attributes         map[string]string       `json:"attributes,omitempty"`
+  ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+}
+
+type CreateVariantResponse struct {
+  ID                 string                  `json:"id"`
+  SKU                string                  `json:"sku"`
+  Pricing            Pricing                 `json:"pricing"`
+  Stock              *Stock                  `json:"stock,omitempty"`
+  Attributes         map[string]string       `json:"attributes,omitempty"`
+  ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+  Image              *ProductImage           `json:"image,omitempty"`
+}
+
+type UploadProductImageRequest struct {
+  ProductID string
+  FilePath  string
+}
+
+type UploadProductImageResponse struct {
+  ImageID string `json:"id"`
+}
+
+type GetStorePagesRequest struct {
+	Cursor string `json:"cursor"`
+}
+
+type GetStorePagesResponse struct {
+	StorePages []StorePage `json:"storePages"`
+	Pagination Pagination  `json:"pagination"`
+}
+
+type GetAllProductsRequest struct {
+	Cursor        	string `json:"cursor"`
+	ModifiedAfter 	string `json:"modifiedAfter"` 
+	ModifiedBefore 	string `json:"modifiedBefore"`
+	Type          	string `json:"type"`
+}
+
+type GetAllProductsResponse struct {
+	Products   []Product   `json:"products"`
+	Pagination Pagination  `json:"pagination"`
+}
+
+type GetSpecificProductsRequest struct {
+  ProductIDs []string `json:"productIds"` // List of specific product IDs to retrieve
+}
+
+type GetSpecificProductsResponse struct {
+  Products []Product `json:"products"`
+}
+
+type GetProductImageUploadStatusResponse struct {
+  Status string `json:"status"`
+}
+
+type AssignProductImageToVariantRequest struct {
+	ProductID string `json:"-"`
+	VariantID string `json:"-"`
+	ImageID   string `json:"imageId"`
+}
+
+type ReorderProductImageRequest struct {
+  ProductID   string  `json:"-"`
+  ImageID     string  `json:"-"`
+  AfterImageID *string `json:"afterImageId,omitempty"`
 }
 
 type UpdateProductRequest struct {
@@ -95,23 +154,18 @@ type UpdateVariantResponse struct {
 	Image               *ProductImage           `json:"image,omitempty"`
 }
 
-type DownloadProductImageRequest struct {
-	ProductID string
-	PartID    string
-	URL       string 
+type UpdateProductImageRequest struct {
+  ProductID string `json:"-"`
+  ImageID   string `json:"-"`
+  AltText   string `json:"altText"`
 }
 
-type DownloadProductImageResponse struct {
-	S3Key string `json:"s3Key"`
-}
-
-type UploadProductImageRequest struct {
-	ProductID string
-	S3Key     string
-}
-
-type UploadProductImageResponse struct {
-	ImageID string `json:"imageId"`
+type UpdateProductImageResponse struct {
+  ID               string    `json:"id"`
+  AltText          string    `json:"altText"`
+  URL              string    `json:"url"`
+  OriginalSize     ImageSize `json:"originalSize"`
+  AvailableFormats []string  `json:"availableFormats"`
 }
 
 type VariantImageUpdateData struct {
@@ -119,12 +173,6 @@ type VariantImageUpdateData struct {
 	SKU string
 	ImageID   string
 	S3Key     string
-}
-
-type SetVariantImageRequest struct {
-	ProductID string `json:"-"`
-	VariantID string `json:"-"`
-	ImageID   string `json:"imageId"`
 }
 
 type StorePage struct {
