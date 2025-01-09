@@ -1,11 +1,14 @@
 package inventory
 
+import "github.com/NuvoCodeTechnologies/gocommerce/common"
+
 const (
 	InventoryAPIVersion = "1.0"
 )
 
 type RetrieveAllInventoryResponse struct {
   Inventory []InventoryRecord `json:"inventory"`
+  Pagination common.Pagination `json:"pagination"`
 }
 
 type RetrieveSpecificInventoryRequest struct {

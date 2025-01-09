@@ -7,14 +7,26 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/NuvoCodeTechnologies/gocommerce/common"
 )
 
-func RetrieveAllInventory(ctx context.Context, config *common.Config) (*RetrieveAllInventoryResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
+func RetrieveAllInventory(ctx context.Context, config *common.Config, queryParams common.QueryParams) (*RetrieveAllInventoryResponse, error) {
+  baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
+  u, err := url.Parse(baseURL)
+  if err != nil {
+    return nil, fmt.Errorf("failed to parse base URL: %w", err)
+  }
 
-  req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+  query := url.Values{}
+  if queryParams.Cursor != "" {
+    query.Add("cursor", queryParams.Cursor)
+  }
+
+  u.RawQuery = query.Encode()
+
+  req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }
