@@ -31,11 +31,13 @@ type CreateProductResponse struct {
 	URL               string           `json:"url"`
 	URLSlug           string           `json:"urlSlug"`
 	Tags              []string         `json:"tags,omitempty"`
-	IsVisible         bool             `json:"isVisible"`
+	IsVisible         *bool            `json:"isVisible,omitempty"`
 	VariantAttributes []string         `json:"variantAttributes"`
 	Variants          []ProductVariant `json:"variants"`
-	Images            []string         `json:"images,omitempty"`
+	Images            []ProductImage   `json:"images,omitempty"`
 	CreatedOn         string           `json:"createdOn"`
+	ModifiedOn        string           `json:"modifiedOn"`
+	SEOOptions        *SEOOptions      `json:"seoOptions"`
 }
 
 type CreateProductVariantRequest struct {
@@ -57,13 +59,8 @@ type CreateProductVariantResponse struct {
   Image              *ProductImage           `json:"image,omitempty"`
 }
 
-type UploadProductImageRequest struct {
-  ProductID string
-  FilePath  string
-}
-
 type UploadProductImageResponse struct {
-  ImageID string `json:"id"`
+  ImageID string `json:"imageId"`
 }
 
 type RetrieveAllStorePagesResponse struct {
@@ -82,12 +79,9 @@ type RetrieveAllProductsResponse struct {
 	Pagination common.Pagination  `json:"pagination"`
 }
 
-type RetrieveSpecificProductsRequest struct {
-  ProductIDs []string `json:"productIds"` // List of specific product IDs to retrieve
-}
-
 type RetrieveSpecificProductsResponse struct {
   Products []Product `json:"products"`
+	Pagination common.Pagination  `json:"pagination"`
 }
 
 type GetProductImageUploadStatusResponse struct {
@@ -97,7 +91,7 @@ type GetProductImageUploadStatusResponse struct {
 type AssignProductImageToVariantRequest struct {
 	ProductID string `json:"-"`
 	VariantID string `json:"-"`
-	ImageID   string `json:"imageId"`
+	ImageID   *string `json:"imageId,omitempty"`
 }
 
 type ReorderProductImageRequest struct {
@@ -208,7 +202,7 @@ type SEOOptions struct {
 }
 
 type Pricing struct {
-	BasePrice common.Amount `json:"basePrice"`  
+	BasePrice *common.Amount `json:"basePrice,omitempty"`  
 	OnSale    bool   `json:"onSale,omitempty"`
 	SalePrice *common.Amount `json:"salePrice,omitempty"`
 }
