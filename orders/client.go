@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/NuvoCodeTechnologies/gocommerce/common"
 )
@@ -85,10 +86,30 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
   return nil
 }
 
-func RetrieveAllOrders(ctx context.Context, config *common.Config) (*RetrieveAllOrdersResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
+func RetrieveAllOrders(ctx context.Context, config *common.Config, queryParams common.QueryParams) (*RetrieveAllOrdersResponse, error) {
+  baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
+  u, err := url.Parse(baseURL)
+  if err != nil {
+    return nil, fmt.Errorf("failed to parse base URL: %w", err)
+  }
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+  query := url.Values{}
+  if queryParams.Cursor != "" {
+    query.Add("cursor", queryParams.Cursor)
+  }
+  if queryParams.ModifiedAfter != "" {
+    query.Add("modifiedAfter", queryParams.ModifiedAfter)
+  }
+  if queryParams.ModifiedBefore != "" {
+    query.Add("modifiedBefore", queryParams.ModifiedBefore)
+  }
+  if queryParams.Status != "" {
+    query.Add("status", queryParams.Status)
+  }
+
+  u.RawQuery = query.Encode()
+
+  req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }

@@ -1,6 +1,10 @@
 package products
 
-import "time"
+import (
+	"time"
+
+	"github.com/NuvoCodeTechnologies/gocommerce/common"
+)
 
 const (
 	ProductsAPIVersion = "1.0"
@@ -34,7 +38,7 @@ type CreateProductResponse struct {
 	CreatedOn         string           `json:"createdOn"`
 }
 
-type CreateVariantRequest struct {
+type CreateProductVariantRequest struct {
   ProductID          string                  `json:"-"`
   SKU                string                  `json:"sku"`
   Pricing            Pricing                 `json:"pricing"`
@@ -43,7 +47,7 @@ type CreateVariantRequest struct {
   ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
-type CreateVariantResponse struct {
+type CreateProductVariantResponse struct {
   ID                 string                  `json:"id"`
   SKU                string                  `json:"sku"`
   Pricing            Pricing                 `json:"pricing"`
@@ -62,32 +66,27 @@ type UploadProductImageResponse struct {
   ImageID string `json:"id"`
 }
 
-type GetStorePagesRequest struct {
-	Cursor string `json:"cursor"`
-}
-
-type GetStorePagesResponse struct {
+type RetrieveAllStorePagesResponse struct {
 	StorePages []StorePage `json:"storePages"`
-	Pagination Pagination  `json:"pagination"`
+	Pagination common.Pagination  `json:"pagination"`
 }
 
-type GetAllProductsRequest struct {
-	Cursor        	string `json:"cursor"`
+type RetrieveAllProductsRequest struct {
 	ModifiedAfter 	string `json:"modifiedAfter"` 
 	ModifiedBefore 	string `json:"modifiedBefore"`
 	Type          	string `json:"type"`
 }
 
-type GetAllProductsResponse struct {
+type RetrieveAllProductsResponse struct {
 	Products   []Product   `json:"products"`
-	Pagination Pagination  `json:"pagination"`
+	Pagination common.Pagination  `json:"pagination"`
 }
 
-type GetSpecificProductsRequest struct {
+type RetrieveSpecificProductsRequest struct {
   ProductIDs []string `json:"productIds"` // List of specific product IDs to retrieve
 }
 
-type GetSpecificProductsResponse struct {
+type RetrieveSpecificProductsResponse struct {
   Products []Product `json:"products"`
 }
 
@@ -135,7 +134,7 @@ type UpdateProductResponse struct {
 	ModifiedOn        string           `json:"modifiedOn"`
 }
 
-type UpdateVariantRequest struct {
+type UpdateProductVariantRequest struct {
 	ProductID          string                  `json:"-"`
 	VariantID          string                  `json:"-"`
 	SKU                string                  `json:"sku,omitempty"`
@@ -144,7 +143,7 @@ type UpdateVariantRequest struct {
 	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
-type UpdateVariantResponse struct {
+type UpdateProductVariantResponse struct {
 	ID                  string                  `json:"id"`
 	SKU                 string                  `json:"sku"`
 	Pricing             Pricing                 `json:"pricing"`
@@ -166,13 +165,6 @@ type UpdateProductImageResponse struct {
   URL              string    `json:"url"`
   OriginalSize     ImageSize `json:"originalSize"`
   AvailableFormats []string  `json:"availableFormats"`
-}
-
-type VariantImageUpdateData struct {
-	Product Product
-	SKU string
-	ImageID   string
-	S3Key     string
 }
 
 type StorePage struct {
@@ -210,26 +202,15 @@ type ProductVariant struct {
 	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
-type Pagination struct {
-	HasNextPage    bool   `json:"hasNextPage"`
-	NextPageCursor string `json:"nextPageCursor"`
-	NextPageURL    string `json:"nextPageUrl"`
-}
-
 type SEOOptions struct {
 	Title       *string `json:"title,omitempty"`
 	Description *string `json:"description,omitempty"`
 }
 
 type Pricing struct {
-	BasePrice Amount `json:"basePrice"`  
+	BasePrice common.Amount `json:"basePrice"`  
 	OnSale    bool   `json:"onSale,omitempty"`
-	SalePrice *Amount `json:"salePrice,omitempty"`
-}
-
-type Amount struct {
-	Currency string `json:"currency"`
-	Value    string `json:"value"`
+	SalePrice *common.Amount `json:"salePrice,omitempty"`
 }
 
 type DigitalGood struct {

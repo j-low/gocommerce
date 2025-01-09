@@ -11,7 +11,7 @@ import (
 	"github.com/NuvoCodeTechnologies/gocommerce/common"
 )
 
-func RetrieveAllProfiles(ctx context.Context, config *common.Config, params RetrieveAllProfilesParams) (*RetrieveAllProfilesResponse, error) {
+func RetrieveAllProfiles(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllProfilesResponse, error) {
   baseURL := fmt.Sprintf("https://api.squarespace.com/%s/profiles", ProfilesAPIVersion)
   u, err := url.Parse(baseURL)
   if err != nil {

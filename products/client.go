@@ -53,7 +53,7 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 	return &product, nil
 }
 
-func CreateVariant(ctx context.Context, config *common.Config, request CreateVariantRequest) (*CreateVariantResponse, error) {
+func CreateProductVariant(ctx context.Context, config *common.Config, request CreateProductVariantRequest) (*CreateProductVariantResponse, error) {
   if request.ProductID == "" {
     return nil, fmt.Errorf("productID is required")
   }
@@ -89,7 +89,7 @@ func CreateVariant(ctx context.Context, config *common.Config, request CreateVar
     return nil, common.ParseErrorResponse(body, resp.StatusCode)
   }
 
-  var createdVariant CreateVariantResponse
+  var createdVariant CreateProductVariantResponse
   if err := json.Unmarshal(body, &createdVariant); err != nil {
     return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
   }
@@ -149,16 +149,16 @@ func UploadProductImage(ctx context.Context, config *common.Config, request Uplo
   return &response, nil
 }
 
-func GetStorePages(ctx context.Context, config *common.Config, request GetStorePagesRequest) (*GetStorePagesResponse, error) {
+func RetrieveAllStorePages(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllStorePagesResponse, error) {
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/store_pages", ProductsAPIVersion)
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
-
-	if request.Cursor != "" {
+	
+	if params.Cursor != "" {
 		query := u.Query()
-		query.Set("cursor", request.Cursor)
+		query.Set("cursor", params.Cursor)
 		u.RawQuery = query.Encode()
 	}
 
@@ -184,7 +184,7 @@ func GetStorePages(ctx context.Context, config *common.Config, request GetStoreP
 		return nil, common.ParseErrorResponse(body, resp.StatusCode)
 	}
 
-	var response GetStorePagesResponse
+	var response RetrieveAllStorePagesResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
@@ -192,22 +192,22 @@ func GetStorePages(ctx context.Context, config *common.Config, request GetStoreP
 	return &response, nil
 }
 
-func GetAllProducts(ctx context.Context, config *common.Config, request GetAllProductsRequest) (*GetAllProductsResponse, error) {
+func RetrieveAllProducts(ctx context.Context, config *common.Config, request RetrieveAllProductsRequest, params common.QueryParams) (*RetrieveAllProductsResponse, error) {
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
-	
+
 	queryParams := url.Values{}
-	if request.Cursor != "" {
-		queryParams.Add("cursor", request.Cursor)
+	if params.Cursor != "" {
+		queryParams.Add("cursor", params.Cursor)
 	}
-	if request.ModifiedAfter != "" {
-		queryParams.Add("modifiedAfter", request.ModifiedAfter)
+	if params.ModifiedAfter != "" {
+		queryParams.Add("modifiedAfter", params.ModifiedAfter)
 	}
-	if request.ModifiedBefore != "" {
-		queryParams.Add("modifiedBefore", request.ModifiedBefore)
+	if params.ModifiedBefore != "" {
+		queryParams.Add("modifiedBefore", params.ModifiedBefore)
 	}
 	if request.Type != "" {
 		queryParams.Add("type", request.Type)
@@ -241,7 +241,7 @@ func GetAllProducts(ctx context.Context, config *common.Config, request GetAllPr
 		return nil, common.ParseErrorResponse(body, resp.StatusCode)
 	}
 
-	var response GetAllProductsResponse
+	var response RetrieveAllProductsResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
@@ -249,7 +249,7 @@ func GetAllProducts(ctx context.Context, config *common.Config, request GetAllPr
 	return &response, nil
 }
 
-func GetSpecificProducts(ctx context.Context, config *common.Config, request GetSpecificProductsRequest) (*GetSpecificProductsResponse, error) {
+func RetrieveSpecificProducts(ctx context.Context, config *common.Config, request RetrieveSpecificProductsRequest) (*RetrieveSpecificProductsResponse, error) {
   if len(request.ProductIDs) == 0 {
     return nil, fmt.Errorf("at least one product ID is required")
   }
@@ -285,7 +285,7 @@ func GetSpecificProducts(ctx context.Context, config *common.Config, request Get
     return nil, common.ParseErrorResponse(body, resp.StatusCode)
   }
 
-  var response GetSpecificProductsResponse
+  var response RetrieveSpecificProductsResponse
   if err := json.Unmarshal(body, &response); err != nil {
     return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
   }
@@ -440,7 +440,7 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 	return &updatedProduct, nil
 }
 
-func UpdateVariant(ctx context.Context, config *common.Config, request UpdateVariantRequest) (*UpdateVariantResponse, error) {
+func UpdateProductVariant(ctx context.Context, config *common.Config, request UpdateProductVariantRequest) (*UpdateProductVariantResponse, error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, request.ProductID, request.VariantID)
 
 	reqBody, err := json.Marshal(request)
@@ -471,7 +471,7 @@ func UpdateVariant(ctx context.Context, config *common.Config, request UpdateVar
 		return nil, common.ParseErrorResponse(body, resp.StatusCode)
 	}
 
-	var updatedVariant UpdateVariantResponse
+	var updatedVariant UpdateProductVariantResponse
 	if err := json.Unmarshal(body, &updatedVariant); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
@@ -551,7 +551,7 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 	return nil
 }
 
-func DeleteVariant(ctx context.Context, config *common.Config, productID, variantID string) error {
+func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) error {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, productID, variantID)
 
   req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)

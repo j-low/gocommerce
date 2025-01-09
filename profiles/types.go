@@ -1,19 +1,14 @@
 package profiles
 
+import "github.com/NuvoCodeTechnologies/gocommerce/common"
+
 const (
 	ProfilesAPIVersion = "1.0"
 )
 
-type RetrieveAllProfilesParams struct {
-  Cursor        string
-  Filter        string
-  SortDirection string
-  SortField     string
-}
-
 type RetrieveAllProfilesResponse struct {
   Profiles   []Profile   `json:"profiles"`
-  Pagination Pagination  `json:"pagination"`
+  Pagination common.Pagination  `json:"pagination"`
 }
 
 type RetrieveSpecificProfilesResponse struct {
@@ -42,9 +37,4 @@ type Address struct {
   PostalCode string `json:"postalCode"`
   CountryCode string `json:"countryCode"`
   Phone      string `json:"phone"`
-}
-
-type Pagination struct {
-  HasNextPage    bool   `json:"hasNextPage"`
-  NextPageCursor string `json:"nextPageCursor"`
 }
