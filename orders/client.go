@@ -85,7 +85,6 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
   return nil
 }
 
-// RetrieveAllOrders retrieves all orders.
 func RetrieveAllOrders(ctx context.Context, config *common.Config) (*RetrieveAllOrdersResponse, error) {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
 
