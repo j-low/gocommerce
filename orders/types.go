@@ -1,6 +1,6 @@
 package orders
 
-import "github.com/NuvoCodeTechnologies/gocommerce/common"
+import "github.com/j-low/gocommerce/common"
 
 const (
 	OrdersAPIVersion = "1.0"

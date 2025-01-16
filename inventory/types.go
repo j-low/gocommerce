@@ -1,6 +1,6 @@
 package inventory
 
-import "github.com/NuvoCodeTechnologies/gocommerce/common"
+import "github.com/j-low/gocommerce/common"
 
 const (
 	InventoryAPIVersion = "1.0"

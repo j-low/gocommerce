@@ -3,7 +3,7 @@ package products
 import (
 	"time"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
 const (

@@ -8,7 +8,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
 func CreateWebhookSubscription(ctx context.Context, config *common.Config, request WebhookSubscriptionRequest) (*WebhookSubscription, error) {
