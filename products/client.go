@@ -197,9 +197,7 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 	// Enforce rules for usage of query params: https://developers.squarespace.com/commerce-apis/retrieve-all-products
 	if params.Cursor != "" {
 		if params.ModifiedAfter != "" || params.ModifiedBefore != "" || request.Type != "" {
-				return nil, fmt.Errorf(
-						"cannot use cursor alongside modifiedAfter, modifiedBefore, or type",
-				)
+			return nil, fmt.Errorf("cannot use cursor alongside modifiedAfter, modifiedBefore, or type")
 		}
 	} else {
 		if request.Type == "" {

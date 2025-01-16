@@ -11,37 +11,26 @@ type RetrieveAllInventoryResponse struct {
   Pagination common.Pagination `json:"pagination"`
 }
 
-type RetrieveSpecificInventoryRequest struct {
-  InventoryIDs []string `json:"inventoryIds"`
-}
-
 type RetrieveSpecificInventoryResponse struct {
   Inventory []InventoryRecord `json:"inventory"`
 }
 
 type AdjustStockQuantitiesRequest struct {
-  Adjustments []StockAdjustment `json:"adjustments"`
-}
-
-type AdjustStockQuantitiesResponse struct {
-  Results []AdjustmentResult `json:"results"`
+	IncrementOperations     []QuantityOperation `json:"incrementOperations,omitempty"`
+	DecrementOperations     []QuantityOperation `json:"decrementOperations,omitempty"`
+	SetFiniteOperations     []QuantityOperation `json:"setFiniteOperations,omitempty"`
+	SetUnlimitedOperations  []string           `json:"setUnlimitedOperations,omitempty"`
 }
 
 type InventoryRecord struct {
-  ID        string `json:"id"`
-  ProductID string `json:"productId"`
-  VariantID string `json:"variantId"`
-  Stock     int    `json:"stock"`
-  Unlimited bool   `json:"unlimited"`
+  VariantID   string `json:"variantId"`
+  SKU         string `json:"sku"`
+  Descriptor  string `json:"descriptor"`
+  IsUnlimited bool   `json:"isUnlimited"`
+  Quantity    int    `json:"quantity"`
 }
 
-type StockAdjustment struct {
-  InventoryID string `json:"inventoryId"`
-  Delta       int    `json:"delta"`
-}
-
-type AdjustmentResult struct {
-  InventoryID string `json:"inventoryId"`
-  Success     bool   `json:"success"`
-  Error       string `json:"error,omitempty"`
+type QuantityOperation struct {
+	VariantID string `json:"variantId"`
+	Quantity  int    `json:"quantity"`
 }

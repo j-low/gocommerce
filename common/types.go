@@ -1,11 +1,16 @@
 package common
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/google/uuid"
+)
 
 type Config struct {
 	APIKey string
 	UserAgent string
 	Client *http.Client
+	IdempotencyKey  *uuid.UUID
 }
 
 type QueryParams struct {
