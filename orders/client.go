@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
 func CreateOrder(ctx context.Context, config *common.Config, request CreateOrderRequest) (*Order, error) {
@@ -90,16 +90,9 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
 	return nil
 }
 
-func RetrieveAllOrders(ctx context.Context, config *common.Config, queryParams common.QueryParams) (*RetrieveAllOrdersResponse, error) {
-	if queryParams.Cursor != "" {
-		if queryParams.ModifiedAfter != "" || queryParams.ModifiedBefore != "" {
-			return nil, fmt.Errorf("cannot use both cursor and modifiedAfter/modifiedBefore")
-		}
-	} else {
-		if (queryParams.ModifiedAfter != "" && queryParams.ModifiedBefore == "") ||
-			(queryParams.ModifiedAfter == "" && queryParams.ModifiedBefore != "") {
-			return nil, fmt.Errorf("must specify both modifiedAfter and modifiedBefore, or neither")
-		}
+func RetrieveAllOrders(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllOrdersResponse, error) {
+	if err := common.ValidateQueryParams(params); err != nil {
+		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
@@ -109,19 +102,18 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, queryParams c
 	}
 
 	query := u.Query()
-	if queryParams.Cursor != "" {
-		query.Set("cursor", queryParams.Cursor)
+	if params.Cursor != "" {
+		query.Set("cursor", params.Cursor)
 	}
-	if queryParams.ModifiedAfter != "" {
-		query.Set("modifiedAfter", queryParams.ModifiedAfter)
+	if params.ModifiedAfter != "" {
+		query.Set("modifiedAfter", params.ModifiedAfter)
 	}
-	if queryParams.ModifiedBefore != "" {
-		query.Set("modifiedBefore", queryParams.ModifiedBefore)
+	if params.ModifiedBefore != "" {
+		query.Set("modifiedBefore", params.ModifiedBefore)
 	}
-	if queryParams.Status != "" {
-		query.Set("fulfillmentStatus", queryParams.Status)
+	if params.Status != "" {
+		query.Set("fulfillmentStatus", params.Status)
 	}
-
 	u.RawQuery = query.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)

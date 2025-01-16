@@ -10,15 +10,12 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
-func RetrieveAllInventory(ctx context.Context, config *common.Config, queryParams common.QueryParams) (*RetrieveAllInventoryResponse, error) {
-	if queryParams.Cursor != "" {
-		if queryParams.Filter != "" || queryParams.ModifiedAfter != "" || queryParams.ModifiedBefore != "" ||
-			queryParams.SortDirection != "" || queryParams.SortField != "" || queryParams.Status != "" {
-			return nil, fmt.Errorf("cannot use cursor alongside other query parameters")
-		}
+func RetrieveAllInventory(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllInventoryResponse, error) {
+	if err := common.ValidateQueryParams(params); err != nil {
+		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
@@ -28,8 +25,8 @@ func RetrieveAllInventory(ctx context.Context, config *common.Config, queryParam
 	}
 
 	query := u.Query()
-	if queryParams.Cursor != "" {
-		query.Set("cursor", queryParams.Cursor)
+	if params.Cursor != "" {
+		query.Set("cursor", params.Cursor)
 	}
 	u.RawQuery = query.Encode()
 

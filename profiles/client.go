@@ -8,31 +8,34 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
 func RetrieveAllProfiles(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllProfilesResponse, error) {
-  baseURL := fmt.Sprintf("https://api.squarespace.com/%s/profiles", ProfilesAPIVersion)
-  u, err := url.Parse(baseURL)
-  if err != nil {
+	if err := common.ValidateQueryParams(params); err != nil {
+		return nil, fmt.Errorf("invalid query parameters: %w", err)
+	}
+
+	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/profiles", ProfilesAPIVersion)
+	u, err := url.Parse(baseURL)
+	if err != nil {
     return nil, fmt.Errorf("failed to parse base URL: %w", err)
   }
 
-  queryParams := url.Values{}
+  query := u.Query()
   if params.Cursor != "" {
-    queryParams.Add("cursor", params.Cursor)
+    query.Set("cursor", params.Cursor)
   }
   if params.Filter != "" {
-    queryParams.Add("filter", params.Filter)
+    query.Set("filter", params.Filter)
   }
   if params.SortDirection != "" {
-    queryParams.Add("sortDirection", params.SortDirection)
+    query.Set("sortDirection", params.SortDirection)
   }
   if params.SortField != "" {
-    queryParams.Add("sortField", params.SortField)
+    query.Set("sortField", params.SortField)
   }
-
-  u.RawQuery = queryParams.Encode()
+  u.RawQuery = query.Encode()
 
   req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
   if err != nil {

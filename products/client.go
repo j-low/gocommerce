@@ -12,7 +12,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/NuvoCodeTechnologies/gocommerce/common"
+	"github.com/j-low/gocommerce/common"
 )
 
 func CreateProduct(ctx context.Context, config *common.Config, request CreateProductRequest) (*Product, error) {
@@ -151,6 +151,9 @@ func UploadProductImage(ctx context.Context, config *common.Config, productID, f
 }
 
 func RetrieveAllStorePages(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllStorePagesResponse, error) {
+	if err := common.ValidateQueryParams(params); err != nil {
+		return nil, fmt.Errorf("invalid query parameters: %w", err)
+	}
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/store_pages", ProductsAPIVersion)
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -162,7 +165,7 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 		query.Set("cursor", params.Cursor)
 		u.RawQuery = query.Encode()
 	}
-
+	
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
@@ -194,18 +197,8 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 }
 
 func RetrieveAllProducts(ctx context.Context, config *common.Config, request RetrieveAllProductsRequest, params common.QueryParams) (*RetrieveAllProductsResponse, error) {
-	// Enforce rules for usage of query params: https://developers.squarespace.com/commerce-apis/retrieve-all-products
-	if params.Cursor != "" {
-		if params.ModifiedAfter != "" || params.ModifiedBefore != "" || request.Type != "" {
-			return nil, fmt.Errorf("cannot use cursor alongside modifiedAfter, modifiedBefore, or type")
-		}
-	} else {
-		if request.Type == "" {
-			return nil, fmt.Errorf("type is required when cursor is not specified")
-		}
-		if (params.ModifiedAfter != "" && params.ModifiedBefore == "") || (params.ModifiedBefore != "" && params.ModifiedAfter == "") {
-			return nil, fmt.Errorf("modifiedAfter and modifiedBefore must both be specified together or not at all")
-		}
+	if err := common.ValidateQueryParams(params); err != nil {
+		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
@@ -214,23 +207,18 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
 
-	queryParams := url.Values{}
+	query := u.Query()
 	if params.Cursor != "" {
-		queryParams.Add("cursor", params.Cursor)
+		query.Set("cursor", params.Cursor)
 	}
 	if params.ModifiedAfter != "" {
-		queryParams.Add("modifiedAfter", params.ModifiedAfter)
+		query.Set("modifiedAfter", params.ModifiedAfter)
 	}
 	if params.ModifiedBefore != "" {
-		queryParams.Add("modifiedBefore", params.ModifiedBefore)
+		query.Set("modifiedBefore", params.ModifiedBefore)
 	}
 	if request.Type != "" {
-		queryParams.Add("type", request.Type)
-	}
-
-	query := u.Query()
-	for key, value := range queryParams {
-		query.Add(key, value[0])
+		query.Set("type", request.Type)
 	}
 	u.RawQuery = query.Encode()
 

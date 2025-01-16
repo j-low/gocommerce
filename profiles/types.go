@@ -1,6 +1,6 @@
 package profiles
 
-import "github.com/NuvoCodeTechnologies/gocommerce/common"
+import "github.com/j-low/gocommerce/common"
 
 const (
 	ProfilesAPIVersion = "1.0"
