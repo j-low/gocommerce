@@ -16,25 +16,26 @@ type RetrieveSpecificProfilesResponse struct {
 }
 
 type Profile struct {
-  ID              string   `json:"id"`
-  FirstName       string   `json:"firstName"`
-  LastName        string   `json:"lastName"`
-  Email           string   `json:"email"`
-  HasAccount      bool     `json:"hasAccount"`
-  IsCustomer      bool     `json:"isCustomer"`
-  CreatedOn       string   `json:"createdOn"`
-  Address         *Address `json:"address,omitempty"`
-  AcceptsMarketing bool    `json:"acceptsMarketing"`
+	ID                  string               `json:"id"`
+	FirstName           string               `json:"firstName"`
+	LastName            string               `json:"lastName"`
+	Email               string               `json:"email"`
+	HasAccount          bool                 `json:"hasAccount"`
+	IsCustomer          bool                 `json:"isCustomer"`
+	CreatedOn           string               `json:"createdOn"`
+	Address             *common.Address      `json:"address,omitempty"`
+	AcceptsMarketing    bool                 `json:"acceptsMarketing"`
+	TransactionsSummary *TransactionsSummary `json:"transactionsSummary,omitempty"`
 }
 
-type Address struct {
-  FirstName  string `json:"firstName"`
-  LastName   string `json:"lastName"`
-  Address1   string `json:"address1"`
-  Address2   string `json:"address2,omitempty"`
-  City       string `json:"city"`
-  State      string `json:"state"`
-  PostalCode string `json:"postalCode"`
-  CountryCode string `json:"countryCode"`
-  Phone      string `json:"phone"`
+type TransactionsSummary struct {
+	FirstOrderSubmittedOn    *string        `json:"firstOrderSubmittedOn,omitempty"`
+	LastOrderSubmittedOn     *string        `json:"lastOrderSubmittedOn,omitempty"`
+	OrderCount               int            `json:"orderCount"`
+	TotalOrderAmount         *common.Amount `json:"totalOrderAmount,omitempty"`
+	TotalRefundAmount        *common.Amount `json:"totalRefundAmount,omitempty"`
+	FirstDonationSubmittedOn *string        `json:"firstDonationSubmittedOn,omitempty"`
+	LastDonationSubmittedOn  *string        `json:"lastDonationSubmittedOn,omitempty"`
+	DonationCount            int            `json:"donationCount"`
+	TotalDonationAmount      *common.Amount `json:"totalDonationAmount,omitempty"`
 }

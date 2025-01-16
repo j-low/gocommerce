@@ -36,6 +36,18 @@ type APIError struct {
 	Detail string
 }
 
+type Address struct {
+  FirstName  string `json:"firstName"`
+  LastName   string `json:"lastName"`
+  Address1   string `json:"address1"`
+  Address2   string `json:"address2,omitempty"`
+  City       string `json:"city"`
+  State      string `json:"state"`
+  PostalCode string `json:"postalCode"`
+  CountryCode string `json:"countryCode"`
+  Phone      string `json:"phone"`
+}
+
 type Amount struct {
 	Currency string `json:"currency"`
 	Value    string `json:"value"`
