@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/NuvoCodeTechnologies/gocommerce/common"
 )
@@ -22,7 +23,7 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -97,10 +98,10 @@ func CreateProductVariant(ctx context.Context, config *common.Config, request Cr
   return &createdVariant, nil
 }
 
-func UploadProductImage(ctx context.Context, config *common.Config, request UploadProductImageRequest) (*UploadProductImageResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images", ProductsAPIVersion, request.ProductID)
+func UploadProductImage(ctx context.Context, config *common.Config, productID, filePath string) (*UploadProductImageResponse, error) {
+  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images", ProductsAPIVersion, productID)
 
-  file, err := os.Open(request.FilePath)
+  file, err := os.Open(filePath)
   if err != nil {
     return nil, fmt.Errorf("failed to open file: %w", err)
   }
@@ -137,7 +138,7 @@ func UploadProductImage(ctx context.Context, config *common.Config, request Uplo
   if readErr != nil {
     return nil, fmt.Errorf("failed to read response body: %w", readErr)
   }
-  if resp.StatusCode != http.StatusOK {
+  if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
     return nil, common.ParseErrorResponse(body, resp.StatusCode)
   }
 
@@ -193,6 +194,20 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 }
 
 func RetrieveAllProducts(ctx context.Context, config *common.Config, request RetrieveAllProductsRequest, params common.QueryParams) (*RetrieveAllProductsResponse, error) {
+	// Enforce rules for usage of query params: https://developers.squarespace.com/commerce-apis/retrieve-all-products
+	if params.Cursor != "" {
+		if params.ModifiedAfter != "" || params.ModifiedBefore != "" || request.Type != "" {
+			return nil, fmt.Errorf("cannot use cursor alongside modifiedAfter, modifiedBefore, or type")
+		}
+	} else {
+		if request.Type == "" {
+			return nil, fmt.Errorf("type is required when cursor is not specified")
+		}
+		if (params.ModifiedAfter != "" && params.ModifiedBefore == "") || (params.ModifiedBefore != "" && params.ModifiedAfter == "") {
+			return nil, fmt.Errorf("modifiedAfter and modifiedBefore must both be specified together or not at all")
+		}
+	}
+
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -219,7 +234,7 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 	}
 	u.RawQuery = query.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, "GET", u.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -249,26 +264,25 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 	return &response, nil
 }
 
-func RetrieveSpecificProducts(ctx context.Context, config *common.Config, request RetrieveSpecificProductsRequest) (*RetrieveSpecificProductsResponse, error) {
-  if len(request.ProductIDs) == 0 {
-    return nil, fmt.Errorf("at least one product ID is required")
-  }
+func RetrieveSpecificProducts(ctx context.Context, config *common.Config, productIDs []string) (*RetrieveSpecificProductsResponse, error) {
+  if len(productIDs) == 0 {
+		return nil, fmt.Errorf("at least one product ID is required")
+	}
+	if len(productIDs) > 50 {
+		return nil, fmt.Errorf("cannot retrieve more than 50 products at once")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
+  joinedIDs := strings.Join(productIDs, ",")
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, joinedIDs)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }
 
   req.Header.Set("Authorization", "Bearer " + config.APIKey)
   req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
 
   resp, err := config.Client.Do(req)
   if err != nil {
@@ -296,7 +310,7 @@ func RetrieveSpecificProducts(ctx context.Context, config *common.Config, reques
 func GetProductImageUploadStatus(ctx context.Context, config *common.Config, productID, imageID string) (*GetProductImageUploadStatusResponse, error) {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/status", ProductsAPIVersion, productID, imageID)
 
-  req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }
@@ -337,7 +351,7 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 		return fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -371,7 +385,7 @@ func ReorderProductImage(ctx context.Context, config *common.Config, request Reo
     return fmt.Errorf("failed to marshal request body: %w", err)
   }
 
-  req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
   if err != nil {
     return fmt.Errorf("failed to create request: %w", err)
   }
@@ -409,7 +423,7 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -487,7 +501,7 @@ func UpdateProductImage(ctx context.Context, config *common.Config, request Upda
     return nil, fmt.Errorf("failed to marshal request body: %w", err)
   }
 
-  req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(reqBody))
+  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }
@@ -526,7 +540,7 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, productID)
 
-	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
