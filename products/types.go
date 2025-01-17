@@ -11,15 +11,15 @@ const (
 )
 
 type CreateProductRequest struct {
-	Type              string            `json:"type"`
-	StorePageID       string            `json:"storePageId"`
-	Name              string            `json:"name,omitempty"`
-	Description       string            `json:"description,omitempty"`
-	URLSlug           string            `json:"urlSlug,omitempty"`
-	Tags              []string          `json:"tags,omitempty"`
-	IsVisible         bool              `json:"isVisible"`
-	VariantAttributes []string          `json:"variantAttributes,omitempty"`
-	Variants          []ProductVariant  `json:"variants"`
+	Type              string           `json:"type"`
+	StorePageID       string           `json:"storePageId"`
+	Name              string           `json:"name,omitempty"`
+	Description       string           `json:"description,omitempty"`
+	URLSlug           string           `json:"urlSlug,omitempty"`
+	Tags              []string         `json:"tags,omitempty"`
+	IsVisible         bool             `json:"isVisible"`
+	VariantAttributes []string         `json:"variantAttributes,omitempty"`
+	Variants          []ProductVariant `json:"variants"`
 }
 
 type CreateProductResponse struct {
@@ -41,73 +41,67 @@ type CreateProductResponse struct {
 }
 
 type CreateProductVariantRequest struct {
-  ProductID          string                  `json:"-"`
-  SKU                string                  `json:"sku"`
-  Pricing            Pricing                 `json:"pricing"`
-  Stock              *Stock                  `json:"stock,omitempty"`
-  Attributes         map[string]string       `json:"attributes,omitempty"`
-  ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	ProductID            string                `json:"-"`
+	SKU                  string                `json:"sku"`
+	Pricing              Pricing               `json:"pricing"`
+	Stock                *Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string     `json:"attributes,omitempty"`
+	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
 type CreateProductVariantResponse struct {
-  ID                 string                  `json:"id"`
-  SKU                string                  `json:"sku"`
-  Pricing            Pricing                 `json:"pricing"`
-  Stock              *Stock                  `json:"stock,omitempty"`
-  Attributes         map[string]string       `json:"attributes,omitempty"`
-  ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
-  Image              *ProductImage           `json:"image,omitempty"`
+	ID                   string                `json:"id"`
+	SKU                  string                `json:"sku"`
+	Pricing              Pricing               `json:"pricing"`
+	Stock                *Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string     `json:"attributes,omitempty"`
+	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	Image                *ProductImage         `json:"image,omitempty"`
 }
 
 type UploadProductImageResponse struct {
-  ImageID string `json:"imageId"`
+	ImageID string `json:"imageId"`
 }
 
 type RetrieveAllStorePagesResponse struct {
-	StorePages []StorePage `json:"storePages"`
-	Pagination common.Pagination  `json:"pagination"`
-}
-
-type RetrieveAllProductsRequest struct {
-	ModifiedAfter 	string `json:"modifiedAfter"` 
-	ModifiedBefore 	string `json:"modifiedBefore"`
-	Type          	string `json:"type"`
+	StorePages []StorePage       `json:"storePages"`
+	Pagination common.Pagination `json:"pagination"`
 }
 
 type RetrieveAllProductsResponse struct {
-	Products   []Product   `json:"products"`
-	Pagination common.Pagination  `json:"pagination"`
+	Products   []Product         `json:"products"`
+	Pagination common.Pagination `json:"pagination"`
 }
 
 type RetrieveSpecificProductsResponse struct {
-  Products []Product `json:"products"`
-	Pagination common.Pagination  `json:"pagination"`
+	Products   []Product         `json:"products"`
+	Pagination common.Pagination `json:"pagination"`
 }
 
 type GetProductImageUploadStatusResponse struct {
-  Status string `json:"status"`
+	Status string `json:"status"`
 }
 
 type AssignProductImageToVariantRequest struct {
 	ProductID string `json:"-"`
 	VariantID string `json:"-"`
-	ImageID   *string `json:"imageId,omitempty"`
+	ImageID   string `json:"imageId"`
 }
 
 type ReorderProductImageRequest struct {
-  ProductID   string  `json:"-"`
-  ImageID     string  `json:"-"`
-  AfterImageID *string `json:"afterImageId,omitempty"`
+	ProductID    string  `json:"-"`
+	ImageID      string  `json:"-"`
+	AfterImageID *string `json:"afterImageId"`
 }
 
 type UpdateProductRequest struct {
-	Name              *string           `json:"name,omitempty"`
-	Description       *string           `json:"description,omitempty"`
-	URLSlug           *string           `json:"urlSlug,omitempty"`
-	Tags              []string          `json:"tags,omitempty"`
-	IsVisible         *bool             `json:"isVisible,omitempty"`
-	VariantAttributes []string          `json:"variantAttributes,omitempty"`
-	SEOOptions        *SEOOptions       `json:"seoOptions,omitempty"`
+	Name              string     `json:"name,omitempty"`
+	Description       string     `json:"description,omitempty"`
+	URLSlug           string     `json:"urlSlug,omitempty"`
+	Tags              []string   `json:"tags,omitempty"`
+	IsVisible         bool       `json:"isVisible,omitempty"`
+	VariantAttributes []string   `json:"variantAttributes,omitempty"`
+	SEOOptions        SEOOptions `json:"seoOptions,omitempty"`
 }
 
 type UpdateProductResponse struct {
@@ -129,36 +123,36 @@ type UpdateProductResponse struct {
 }
 
 type UpdateProductVariantRequest struct {
-	ProductID          string                  `json:"-"`
-	VariantID          string                  `json:"-"`
-	SKU                string                  `json:"sku,omitempty"`
-	Pricing            *Pricing                `json:"pricing,omitempty"`
-	Attributes         map[string]string       `json:"attributes,omitempty"`
+	ProductID            string                `json:"-"`
+	VariantID            string                `json:"-"`
+	SKU                  string                `json:"sku,omitempty"`
+	Pricing              *Pricing              `json:"pricing,omitempty"`
+	Attributes           map[string]string     `json:"attributes,omitempty"`
 	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
 type UpdateProductVariantResponse struct {
-	ID                  string                  `json:"id"`
-	SKU                 string                  `json:"sku"`
-	Pricing             Pricing                 `json:"pricing"`
-	Stock               *Stock                  `json:"stock,omitempty"`
-	Attributes          map[string]string       `json:"attributes"`
-	ShippingMeasurements *ShippingMeasurements  `json:"shippingMeasurements"`
-	Image               *ProductImage           `json:"image,omitempty"`
+	ID                   string                `json:"id"`
+	SKU                  string                `json:"sku"`
+	Pricing              Pricing               `json:"pricing"`
+	Stock                *Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string     `json:"attributes"`
+	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements"`
+	Image                *ProductImage         `json:"image,omitempty"`
 }
 
 type UpdateProductImageRequest struct {
-  ProductID string `json:"-"`
-  ImageID   string `json:"-"`
-  AltText   string `json:"altText"`
+	ProductID string `json:"-"`
+	ImageID   string `json:"-"`
+	AltText   string `json:"altText"`
 }
 
 type UpdateProductImageResponse struct {
-  ID               string    `json:"id"`
-  AltText          string    `json:"altText"`
-  URL              string    `json:"url"`
-  OriginalSize     ImageSize `json:"originalSize"`
-  AvailableFormats []string  `json:"availableFormats"`
+	ID               string    `json:"id"`
+	AltText          string    `json:"altText"`
+	URL              string    `json:"url"`
+	OriginalSize     ImageSize `json:"originalSize"`
+	AvailableFormats []string  `json:"availableFormats"`
 }
 
 type StorePage struct {
@@ -168,31 +162,31 @@ type StorePage struct {
 }
 
 type Product struct {
-	ID                string         `json:"id"`
-	Type              string         `json:"type"`
-	StorePageID       string         `json:"storePageId"`
-	Name              string         `json:"name"`
-	Description       string         `json:"description"`
-	URL               string         `json:"url"`
-	URLSlug           string         `json:"urlSlug"`
-	Tags              []string       `json:"tags"`
-	IsVisible         bool           `json:"isVisible"`
-	SEOOptions        SEOOptions     `json:"seoOptions"`
-	VariantAttributes []string       `json:"variantAttributes"`
+	ID                string           `json:"id"`
+	Type              string           `json:"type"`
+	StorePageID       string           `json:"storePageId"`
+	Name              string           `json:"name"`
+	Description       string           `json:"description"`
+	URL               string           `json:"url"`
+	URLSlug           string           `json:"urlSlug"`
+	Tags              []string         `json:"tags"`
+	IsVisible         bool             `json:"isVisible"`
+	SEOOptions        SEOOptions       `json:"seoOptions"`
+	VariantAttributes []string         `json:"variantAttributes"`
 	Variants          []ProductVariant `json:"variants"`
-	Images            []ProductImage `json:"images"`
-	Pricing           *Pricing       `json:"pricing,omitempty"`
-	DigitalGood       *DigitalGood   `json:"digitalGood,omitempty"`
-	CreatedOn         time.Time      `json:"createdOn"`
-	ModifiedOn        time.Time      `json:"modifiedOn"`
+	Images            []ProductImage   `json:"images"`
+	Pricing           *Pricing         `json:"pricing,omitempty"`
+	DigitalGood       *DigitalGood     `json:"digitalGood,omitempty"`
+	CreatedOn         time.Time        `json:"createdOn"`
+	ModifiedOn        time.Time        `json:"modifiedOn"`
 }
 
 type ProductVariant struct {
-	ID                 string                `json:"id"`
-	SKU                string                `json:"sku"`
-	Pricing            Pricing               `json:"pricing"`
-	Stock              *Stock                `json:"stock,omitempty"`
-	Attributes         map[string]string     `json:"attributes,omitempty"`
+	ID                   string                `json:"id,omitempty"`
+	SKU                  string                `json:"sku"`
+	Pricing              Pricing               `json:"pricing"`
+	Stock                *Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string     `json:"attributes,omitempty"`
 	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
@@ -202,8 +196,8 @@ type SEOOptions struct {
 }
 
 type Pricing struct {
-	BasePrice *common.Amount `json:"basePrice,omitempty"`  
-	OnSale    bool   `json:"onSale,omitempty"`
+	BasePrice *common.Amount `json:"basePrice,omitempty"`
+	OnSale    bool           `json:"onSale,omitempty"`
 	SalePrice *common.Amount `json:"salePrice,omitempty"`
 }
 
@@ -235,11 +229,11 @@ type Dimensions struct {
 }
 
 type ProductImage struct {
-	ID               string       `json:"id"`
-	AltText          string       `json:"altText"`
-	URL              string       `json:"url"`
-	OriginalSize     ImageSize    `json:"originalSize"`
-	AvailableFormats []string     `json:"availableFormats"`
+	ID               string    `json:"id"`
+	AltText          string    `json:"altText"`
+	URL              string    `json:"url"`
+	OriginalSize     ImageSize `json:"originalSize"`
+	AvailableFormats []string  `json:"availableFormats"`
 }
 
 type ImageSize struct {

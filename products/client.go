@@ -43,7 +43,7 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateProduct", url, body, resp.StatusCode)
 	}
 
 	var product Product
@@ -87,7 +87,7 @@ func CreateProductVariant(ctx context.Context, config *common.Config, request Cr
   }
 
   if resp.StatusCode != http.StatusCreated {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("CreateProductVariant", url, body, resp.StatusCode)
   }
 
   var createdVariant CreateProductVariantResponse
@@ -120,7 +120,7 @@ func UploadProductImage(ctx context.Context, config *common.Config, productID, f
     return nil, fmt.Errorf("failed to close writer: %w", err)
   }
 
-  req, err := http.NewRequestWithContext(ctx, "POST", url, &requestBody)
+  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &requestBody)
   if err != nil {
     return nil, fmt.Errorf("failed to create request: %w", err)
   }
@@ -138,8 +138,8 @@ func UploadProductImage(ctx context.Context, config *common.Config, productID, f
   if readErr != nil {
     return nil, fmt.Errorf("failed to read response body: %w", readErr)
   }
-  if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+  if resp.StatusCode != http.StatusAccepted {
+    return nil, common.ParseErrorResponse("UploadProductImage", url, body, resp.StatusCode)
   }
 
   var response UploadProductImageResponse
@@ -185,7 +185,7 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllStorePages", u.String(), body, resp.StatusCode)
 	}
 
 	var response RetrieveAllStorePagesResponse
@@ -196,7 +196,7 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 	return &response, nil
 }
 
-func RetrieveAllProducts(ctx context.Context, config *common.Config, request RetrieveAllProductsRequest, params common.QueryParams) (*RetrieveAllProductsResponse, error) {
+func RetrieveAllProducts(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllProductsResponse, error) {
 	if err := common.ValidateQueryParams(params); err != nil {
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
@@ -217,8 +217,8 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 	if params.ModifiedBefore != "" {
 		query.Set("modifiedBefore", params.ModifiedBefore)
 	}
-	if request.Type != "" {
-		query.Set("type", request.Type)
+	if params.Type != "" {
+		query.Set("type", params.Type)
 	}
 	u.RawQuery = query.Encode()
 
@@ -241,7 +241,7 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, request Ret
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllProducts", u.String(), body, resp.StatusCode)
 	}
 
 	var response RetrieveAllProductsResponse
@@ -284,7 +284,7 @@ func RetrieveSpecificProducts(ctx context.Context, config *common.Config, produc
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveSpecificProducts", url, body, resp.StatusCode)
   }
 
   var response RetrieveSpecificProductsResponse
@@ -316,7 +316,7 @@ func GetProductImageUploadStatus(ctx context.Context, config *common.Config, pro
     return nil, fmt.Errorf("failed to read response body: %w", readErr)
   }
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("GetProductImageUploadStatus", url, body, resp.StatusCode)
   }
 
   var statusResponse GetProductImageUploadStatusResponse
@@ -327,21 +327,21 @@ func GetProductImageUploadStatus(ctx context.Context, config *common.Config, pro
   return &statusResponse, nil
 }
 
-func AssignProductImageToVariant(ctx context.Context, config *common.Config, request AssignProductImageToVariantRequest) error {
+func AssignProductImageToVariant(ctx context.Context, config *common.Config, request AssignProductImageToVariantRequest) (status int, err error) {
 	if ctx == nil {
-		return fmt.Errorf("context cannot be nil")
+		return http.StatusBadRequest, fmt.Errorf("context cannot be nil")
 	}
 	
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s/image", ProductsAPIVersion, request.ProductID, request.VariantID)
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request body: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer " + config.APIKey)
@@ -350,32 +350,32 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 
 	resp, err := config.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to assign image to variant: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to assign image to variant: %w", err)
 	}
 	defer resp.Body.Close()
 	
 	if resp.StatusCode != http.StatusNoContent {
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
-	}
-	return common.ParseErrorResponse(body, resp.StatusCode)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
+		}
+		return resp.StatusCode, common.ParseErrorResponse("AssignProductImageToVariant", url, body, resp.StatusCode)
 	}
 
-	return nil
+	return http.StatusNoContent, nil
 }
 
-func ReorderProductImage(ctx context.Context, config *common.Config, request ReorderProductImageRequest) error {
+func ReorderProductImage(ctx context.Context, config *common.Config, request ReorderProductImageRequest) (status int, err error) {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/order", ProductsAPIVersion, request.ProductID, request.ImageID)
 
   reqBody, err := json.Marshal(request)
   if err != nil {
-    return fmt.Errorf("failed to marshal request body: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
   }
 
   req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
   if err != nil {
-    return fmt.Errorf("failed to create request: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
   }
 
   req.Header.Set("Authorization", "Bearer " + config.APIKey)
@@ -384,19 +384,19 @@ func ReorderProductImage(ctx context.Context, config *common.Config, request Reo
 
   resp, err := config.Client.Do(req)
   if err != nil {
-    return fmt.Errorf("failed to reorder product image: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to reorder product image: %w", err)
   }
   defer resp.Body.Close()
 
   if resp.StatusCode != http.StatusNoContent {
     body, readErr := io.ReadAll(resp.Body)
     if readErr != nil {
-      return fmt.Errorf("failed to read response body: %w", readErr)
+      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
     }
-    return common.ParseErrorResponse(body, resp.StatusCode)
+    return resp.StatusCode, common.ParseErrorResponse("ReorderProductImage", url, body, resp.StatusCode)
   }
 
-  return nil
+  return http.StatusNoContent, nil
 }
 
 func UpdateProduct(ctx context.Context, config *common.Config, productID string, request UpdateProductRequest) (*UpdateProductResponse, error) {
@@ -431,7 +431,7 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateProduct", url, body, resp.StatusCode)
 	}
 
 	var updatedProduct UpdateProductResponse
@@ -470,7 +470,7 @@ func UpdateProductVariant(ctx context.Context, config *common.Config, request Up
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateProductVariant", url, body, resp.StatusCode)
 	}
 
 	var updatedVariant UpdateProductVariantResponse
@@ -510,7 +510,7 @@ func UpdateProductImage(ctx context.Context, config *common.Config, request Upda
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("UpdateProductImage", url, body, resp.StatusCode)
   }
 
   var updatedImage UpdateProductImageResponse
@@ -521,16 +521,16 @@ func UpdateProductImage(ctx context.Context, config *common.Config, request Upda
   return &updatedImage, nil
 }
 
-func DeleteProduct(ctx context.Context, config *common.Config, productID string) error {
+func DeleteProduct(ctx context.Context, config *common.Config, productID string) (status int, err error) {
 	if productID == "" {
-		return fmt.Errorf("productID is required")
+		return http.StatusBadRequest, fmt.Errorf("productID is required")
 	}
 
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, productID)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer " + config.APIKey)
@@ -538,71 +538,71 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 
 	resp, err := config.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to delete product: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to delete product: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return fmt.Errorf("failed to read response body: %w", err)
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
 		}
-		return common.ParseErrorResponse(body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProduct", url, body, resp.StatusCode)
 	}
 
-	return nil
+	return http.StatusNoContent, nil
 }
 
-func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) error {
+func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) (status int, err error) {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, productID, variantID)
 
   req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
   if err != nil {
-    return fmt.Errorf("failed to create request: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
   }
   req.Header.Set("Authorization", "Bearer " + config.APIKey)
   req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
   resp, err := config.Client.Do(req)
   if err != nil {
-    return fmt.Errorf("failed to delete product variant: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to delete product variant: %w", err)
   }
   defer resp.Body.Close()
 
   if resp.StatusCode != http.StatusNoContent {
     body, readErr := io.ReadAll(resp.Body)
     if readErr != nil {
-      return fmt.Errorf("failed to read response body: %w", readErr)
+      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
     }
-    return common.ParseErrorResponse(body, resp.StatusCode)
+    return resp.StatusCode, common.ParseErrorResponse("DeleteProductVariant", url, body, resp.StatusCode)
   }
 
-  return nil
+  return http.StatusNoContent, nil
 }
 
-func DeleteProductImage(ctx context.Context, config *common.Config, productID, imageID string) error {
+func DeleteProductImage(ctx context.Context, config *common.Config, productID, imageID string) (status int, err error) {
   url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, productID, imageID)
 
   req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
   if err != nil {
-    return fmt.Errorf("failed to create request: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
   }
   req.Header.Set("Authorization", "Bearer " + config.APIKey)
   req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
   resp, err := config.Client.Do(req)
   if err != nil {
-    return fmt.Errorf("failed to delete product image: %w", err)
+    return http.StatusBadRequest, fmt.Errorf("failed to delete product image: %w", err)
   }
   defer resp.Body.Close()
 
   if resp.StatusCode != http.StatusNoContent {
     body, readErr := io.ReadAll(resp.Body)
     if readErr != nil {
-      return fmt.Errorf("failed to read response body: %w", readErr)
+      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
     }
-    return common.ParseErrorResponse(body, resp.StatusCode)
+    return resp.StatusCode, common.ParseErrorResponse("DeleteProductImage", url, body, resp.StatusCode)
   }
 
-  return nil
+  return http.StatusNoContent, nil
 }

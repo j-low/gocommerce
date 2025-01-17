@@ -6,21 +6,27 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+	ProductTypePhysical = "PHYSICAL"
+	ProductTypeDigital  = "DIGITAL"
+)
+
 type Config struct {
-	APIKey string
-	UserAgent string
-	Client *http.Client
-	IdempotencyKey  *uuid.UUID
+	APIKey         string
+	UserAgent      string
+	Client         *http.Client
+	IdempotencyKey *uuid.UUID
 }
 
 type QueryParams struct {
-	Cursor        string
-	Filter        string
-	ModifiedAfter string
+	Cursor         string
+	Filter         string
+	ModifiedAfter  string
 	ModifiedBefore string
-	SortDirection string
-	SortField     string
-	Status        string
+	SortDirection  string
+	SortField      string
+	Status         string
+	Type           string
 }
 
 type Pagination struct {
@@ -30,22 +36,22 @@ type Pagination struct {
 }
 
 type APIError struct {
-	Type string
+	Type    string
 	Subtype string
 	Message string
-	Detail string
+	Detail  string
 }
 
 type Address struct {
-  FirstName  string `json:"firstName"`
-  LastName   string `json:"lastName"`
-  Address1   string `json:"address1"`
-  Address2   string `json:"address2,omitempty"`
-  City       string `json:"city"`
-  State      string `json:"state"`
-  PostalCode string `json:"postalCode"`
-  CountryCode string `json:"countryCode"`
-  Phone      string `json:"phone"`
+	FirstName   string `json:"firstName"`
+	LastName    string `json:"lastName"`
+	Address1    string `json:"address1"`
+	Address2    string `json:"address2,omitempty"`
+	City        string `json:"city"`
+	State       string `json:"state"`
+	PostalCode  string `json:"postalCode"`
+	CountryCode string `json:"countryCode"`
+	Phone       string `json:"phone"`
 }
 
 type Amount struct {
