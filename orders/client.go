@@ -25,7 +25,7 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -56,7 +56,7 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 	return &response, nil
 }
 
-func FulfillOrder(ctx context.Context, config *common.Config, orderID string, request FulfillOrderRequest) (status int, err error) {
+func FulfillOrder(ctx context.Context, config *common.Config, orderID string, request FulfillOrderRequest) (int, error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders/%s/fulfillments", OrdersAPIVersion, orderID)
 
 	reqBody, err := json.Marshal(request)
@@ -69,7 +69,7 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -121,7 +121,7 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, params common
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
 	resp, err := config.Client.Do(req)
@@ -150,33 +150,33 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, params common
 func RetrieveSpecificOrder(ctx context.Context, config *common.Config, orderID string) (*Order, error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders/%s", OrdersAPIVersion, orderID)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to retrieve order: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve order: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("RetrieveSpecificOrder", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("RetrieveSpecificOrder", url, body, resp.StatusCode)
+	}
 
-  var response Order
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var response Order
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &response, nil
+	return &response, nil
 }

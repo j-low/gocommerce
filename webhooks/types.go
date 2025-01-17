@@ -1,7 +1,7 @@
 package webhooks
 
 const (
-	WebhooksAPIVersion = "v1"
+	WebhooksAPIVersion = "1.0"
 )
 
 type WebhookSubscriptionRequest struct {

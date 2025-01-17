@@ -7,26 +7,26 @@ const (
 )
 
 type CreateOrderRequest struct {
-	ChannelName                            string          `json:"channelName"`
-	ExternalOrderReference                 string          `json:"externalOrderReference"`
-	CustomerEmail                          *string         `json:"customerEmail,omitempty"`
-	BillingAddress                         *common.Address `json:"billingAddress,omitempty"`
-	ShippingAddress                        *common.Address `json:"shippingAddress,omitempty"`
-	InventoryBehavior                      *string         `json:"inventoryBehavior,omitempty"`
-	LineItems                              []LineItem      `json:"lineItems"`
-	ShippingLines                          []ShippingLine  `json:"shippingLines,omitempty"`
-	DiscountLines                          []DiscountLine  `json:"discountLines,omitempty"`
-	PriceTaxInterpretation                 string          `json:"priceTaxInterpretation"`
-	Subtotal                               *common.Amount  `json:"subtotal,omitempty"`
-	ShippingTotal                          *common.Amount  `json:"shippingTotal,omitempty"`
-	DiscountTotal                          *common.Amount  `json:"discountTotal,omitempty"`
-	TaxTotal                               *common.Amount  `json:"taxTotal,omitempty"`
-	GrandTotal                             common.Amount   `json:"grandTotal"`
-	FulfillmentStatus                      *string         `json:"fulfillmentStatus,omitempty"`
-	ShopperFulfillmentNotificationBehavior *string         `json:"shopperFulfillmentNotificationBehavior,omitempty"`
-	FulfilledOn                            *string         `json:"fulfilledOn,omitempty"`
-	Fulfillments                           []Fulfillment   `json:"fulfillments"`
-	CreatedOn                              string          `json:"createdOn"`
+	ChannelName                            string         `json:"channelName"`
+	ExternalOrderReference                 string         `json:"externalOrderReference"`
+	CustomerEmail                          string         `json:"customerEmail,omitempty"`
+	BillingAddress                         common.Address `json:"billingAddress,omitempty"`
+	ShippingAddress                        common.Address `json:"shippingAddress,omitempty"`
+	InventoryBehavior                      string         `json:"inventoryBehavior,omitempty"`
+	LineItems                              []LineItem     `json:"lineItems"`
+	ShippingLines                          []ShippingLine `json:"shippingLines,omitempty"`
+	DiscountLines                          []DiscountLine `json:"discountLines,omitempty"`
+	PriceTaxInterpretation                 string         `json:"priceTaxInterpretation"`
+	Subtotal                               common.Amount  `json:"subtotal,omitempty"`
+	ShippingTotal                          common.Amount  `json:"shippingTotal,omitempty"`
+	DiscountTotal                          common.Amount  `json:"discountTotal,omitempty"`
+	TaxTotal                               common.Amount  `json:"taxTotal,omitempty"`
+	GrandTotal                             common.Amount  `json:"grandTotal"`
+	FulfillmentStatus                      string         `json:"fulfillmentStatus,omitempty"`
+	ShopperFulfillmentNotificationBehavior string         `json:"shopperFulfillmentNotificationBehavior,omitempty"`
+	FulfilledOn                            string         `json:"fulfilledOn,omitempty"`
+	Fulfillments                           []Fulfillment  `json:"fulfillments"`
+	CreatedOn                              string         `json:"createdOn"`
 }
 
 type FulfillOrderRequest struct {
