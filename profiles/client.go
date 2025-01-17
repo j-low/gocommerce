@@ -56,7 +56,7 @@ func RetrieveAllProfiles(ctx context.Context, config *common.Config, params comm
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveAllProfiles", u.String(), body, resp.StatusCode)
   }
 
   var response RetrieveAllProfilesResponse
@@ -102,7 +102,7 @@ func RetrieveSpecificProfiles(ctx context.Context, config *common.Config, profil
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveSpecificProfiles", u.String(), body, resp.StatusCode)
   }
 
   var response RetrieveSpecificProfilesResponse

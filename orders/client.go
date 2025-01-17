@@ -45,7 +45,7 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateOrder", url, body, resp.StatusCode)
 	}
 
 	var response Order
@@ -56,17 +56,17 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 	return &response, nil
 }
 
-func FulfillOrder(ctx context.Context, config *common.Config, orderID string, request FulfillOrderRequest) error {
+func FulfillOrder(ctx context.Context, config *common.Config, orderID string, request FulfillOrderRequest) (status int, err error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders/%s/fulfillments", OrdersAPIVersion, orderID)
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request body: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer " + config.APIKey)
@@ -75,19 +75,19 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
 
 	resp, err := config.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to fulfill order: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to fulfill order: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, readErr := io.ReadAll(resp.Body)
 		if readErr != nil {
-			return fmt.Errorf("failed to read response body: %w", readErr)
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return common.ParseErrorResponse(body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("FulfillOrder", url, body, resp.StatusCode)
 	}
 
-	return nil
+	return http.StatusNoContent, nil
 }
 
 func RetrieveAllOrders(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllOrdersResponse, error) {
@@ -136,7 +136,7 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, params common
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllOrders", u.String(), body, resp.StatusCode)
 	}
 
 	var response RetrieveAllOrdersResponse
@@ -170,7 +170,7 @@ func RetrieveSpecificOrder(ctx context.Context, config *common.Config, orderID s
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveSpecificOrder", url, body, resp.StatusCode)
   }
 
   var response Order

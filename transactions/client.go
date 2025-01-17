@@ -55,7 +55,7 @@ func RetrieveAllTransactions(ctx context.Context, config *common.Config, params 
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllTransactions", u.String(), body, resp.StatusCode)
 	}
 
 	var response RetrieveAllTransactionsResponse
@@ -73,33 +73,41 @@ func RetrieveSpecificTransactions(ctx context.Context, config *common.Config, tr
 	if len(transactionIDs) > 50 {
 		return nil, fmt.Errorf("transactionIDs cannot exceed 50 IDs")
 	}
+
 	ids := url.PathEscape(strings.Join(transactionIDs, ","))
 	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/transactions/%s", TransactionsAPIVersion, ids)
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
+
 	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	
 	resp, err := config.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer resp.Body.Close()
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
+
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificTransactions", u.String(), body, resp.StatusCode)
 	}
+
 	var response RetrieveSpecificTransactionsResponse
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
+
 	return &response, nil
 }

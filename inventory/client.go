@@ -50,7 +50,7 @@ func RetrieveAllInventory(ctx context.Context, config *common.Config, params com
 	}
 
   if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllInventory", u.String(), body, resp.StatusCode)
 	}
 
   var response RetrieveAllInventoryResponse
@@ -70,7 +70,8 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 	}
 
 	idsPath := strings.Join(inventoryIDs, ",")
-	endpoint := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory/%s", InventoryAPIVersion, idsPath)
+	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
+	endpoint := fmt.Sprintf("%s/%s", baseURL, idsPath)
 
 	u, err := url.Parse(endpoint)
 	if err != nil {
@@ -97,7 +98,7 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse(body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificInventory", u.String(), body, resp.StatusCode)
 	}
 
 	var response RetrieveSpecificInventoryResponse
@@ -108,17 +109,17 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 	return &response, nil
 }
 
-func AdjustStockQuantities(ctx context.Context, config *common.Config, request AdjustStockQuantitiesRequest) error {
+func AdjustStockQuantities(ctx context.Context, config *common.Config, request AdjustStockQuantitiesRequest) (status int, err error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory/adjustments", InventoryAPIVersion)
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
-		return fmt.Errorf("failed to marshal request body: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	req.Header.Set("Authorization", "Bearer " + config.APIKey)
@@ -131,17 +132,17 @@ func AdjustStockQuantities(ctx context.Context, config *common.Config, request A
 
 	resp, err := config.Client.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to adjust stock quantities: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to adjust stock quantities: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusNoContent {
-		return nil
+		return http.StatusNoContent, nil
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("failed to read response body: %w", err)
+		return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
 	}
-	return common.ParseErrorResponse(body, resp.StatusCode)
+	return resp.StatusCode, common.ParseErrorResponse("AdjustStockQuantities", url, body, resp.StatusCode)
 }

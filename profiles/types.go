@@ -7,12 +7,12 @@ const (
 )
 
 type RetrieveAllProfilesResponse struct {
-  Profiles   []Profile   `json:"profiles"`
-  Pagination common.Pagination  `json:"pagination"`
+	Profiles   []Profile         `json:"profiles"`
+	Pagination common.Pagination `json:"pagination"`
 }
 
 type RetrieveSpecificProfilesResponse struct {
-  Profiles []Profile `json:"profiles"`
+	Profiles []Profile `json:"profiles"`
 }
 
 type Profile struct {

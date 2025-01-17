@@ -44,7 +44,7 @@ func CreateWebhookSubscription(ctx context.Context, config *common.Config, reque
   }
 
   if resp.StatusCode != http.StatusCreated {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("CreateWebhookSubscription", url, body, resp.StatusCode)
   }
 
   var response WebhookSubscription
@@ -92,7 +92,7 @@ func UpdateWebhookSubscription(ctx context.Context, config *common.Config, subsc
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("UpdateWebhookSubscription", url, body, resp.StatusCode)
   }
 
   var response WebhookSubscription
@@ -126,7 +126,7 @@ func RetrieveAllWebhookSubscriptions(ctx context.Context, config *common.Config)
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveAllWebhookSubscriptions", url, body, resp.StatusCode)
   }
 
   var response RetrieveAllWebhookSubscriptionsResponse
@@ -164,7 +164,7 @@ func RetrieveSpecificWebhookSubscription(ctx context.Context, config *common.Con
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RetrieveSpecificWebhookSubscription", url, body, resp.StatusCode)
   }
 
   var response WebhookSubscription
@@ -201,7 +201,7 @@ func DeleteWebhookSubscription(ctx context.Context, config *common.Config, subsc
     if readErr != nil {
       return fmt.Errorf("failed to read response body: %w", readErr)
     }
-    return common.ParseErrorResponse(body, resp.StatusCode)
+    return common.ParseErrorResponse("DeleteWebhookSubscription", url, body, resp.StatusCode)
   }
 
   return nil
@@ -244,7 +244,7 @@ func SendTestNotification(ctx context.Context, config *common.Config, subscripti
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("SendTestNotification", url, body, resp.StatusCode)
   }
 
   var response SendTestNotificationResponse
@@ -283,7 +283,7 @@ func RotateSubscriptionSecret(ctx context.Context, config *common.Config, subscr
   }
 
   if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse(body, resp.StatusCode)
+    return nil, common.ParseErrorResponse("RotateSubscriptionSecret", url, body, resp.StatusCode)
   }
 
   var response RotateSubscriptionSecretResponse
