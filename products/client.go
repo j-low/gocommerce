@@ -16,14 +16,17 @@ import (
 )
 
 func CreateProduct(ctx context.Context, config *common.Config, request CreateProductRequest) (*Product, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, "commerce/products")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -43,7 +46,7 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse("CreateProduct", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateProduct", baseURL, body, resp.StatusCode)
 	}
 
 	var product Product
@@ -59,14 +62,17 @@ func CreateProductVariant(ctx context.Context, config *common.Config, request Cr
 		return nil, fmt.Errorf("productID is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants", ProductsAPIVersion, request.ProductID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/variants", request.ProductID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -87,7 +93,7 @@ func CreateProductVariant(ctx context.Context, config *common.Config, request Cr
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse("CreateProductVariant", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateProductVariant", baseURL, body, resp.StatusCode)
 	}
 
 	var createdVariant CreateProductVariantResponse
@@ -99,7 +105,10 @@ func CreateProductVariant(ctx context.Context, config *common.Config, request Cr
 }
 
 func UploadProductImage(ctx context.Context, config *common.Config, productID, filePath string) (*UploadProductImageResponse, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images", ProductsAPIVersion, productID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/images", productID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -120,7 +129,7 @@ func UploadProductImage(ctx context.Context, config *common.Config, productID, f
 		return nil, fmt.Errorf("failed to close writer: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &requestBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, &requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -139,7 +148,7 @@ func UploadProductImage(ctx context.Context, config *common.Config, productID, f
 		return nil, fmt.Errorf("failed to read response body: %w", readErr)
 	}
 	if resp.StatusCode != http.StatusAccepted {
-		return nil, common.ParseErrorResponse("UploadProductImage", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UploadProductImage", baseURL, body, resp.StatusCode)
 	}
 
 	var response UploadProductImageResponse
@@ -154,7 +163,12 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 	if err := common.ValidateQueryParams(params); err != nil {
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/store_pages", ProductsAPIVersion)
+
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, "commerce/store_pages")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -201,7 +215,11 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, params comm
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products", ProductsAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, "commerce/products")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -262,9 +280,12 @@ func RetrieveSpecificProducts(ctx context.Context, config *common.Config, produc
 
 	joinedIDs := strings.Join(productIDs, ",")
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, joinedIDs)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s", joinedIDs))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -284,7 +305,7 @@ func RetrieveSpecificProducts(ctx context.Context, config *common.Config, produc
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RetrieveSpecificProducts", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificProducts", baseURL, body, resp.StatusCode)
 	}
 
 	var response RetrieveSpecificProductsResponse
@@ -296,9 +317,12 @@ func RetrieveSpecificProducts(ctx context.Context, config *common.Config, produc
 }
 
 func GetProductImageUploadStatus(ctx context.Context, config *common.Config, productID, imageID string) (*GetProductImageUploadStatusResponse, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/status", ProductsAPIVersion, productID, imageID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/images/%s/status", productID, imageID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -316,7 +340,7 @@ func GetProductImageUploadStatus(ctx context.Context, config *common.Config, pro
 		return nil, fmt.Errorf("failed to read response body: %w", readErr)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("GetProductImageUploadStatus", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("GetProductImageUploadStatus", baseURL, body, resp.StatusCode)
 	}
 
 	var statusResponse GetProductImageUploadStatusResponse
@@ -332,14 +356,17 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 		return http.StatusBadRequest, fmt.Errorf("context cannot be nil")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s/image", ProductsAPIVersion, request.ProductID, request.VariantID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/variants/%s/image", request.ProductID, request.VariantID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -359,21 +386,24 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("AssignProductImageToVariant", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("AssignProductImageToVariant", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil
 }
 
 func ReorderProductImage(ctx context.Context, config *common.Config, request ReorderProductImageRequest) (int, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/order", ProductsAPIVersion, request.ProductID, request.ImageID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/images/%s/order", request.ProductID, request.ImageID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -393,7 +423,7 @@ func ReorderProductImage(ctx context.Context, config *common.Config, request Reo
 		if readErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("ReorderProductImage", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("ReorderProductImage", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil
@@ -404,14 +434,17 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 		return nil, fmt.Errorf("productID is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, productID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s", productID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -431,7 +464,7 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("UpdateProduct", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateProduct", baseURL, body, resp.StatusCode)
 	}
 
 	var updatedProduct UpdateProductResponse
@@ -443,14 +476,17 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 }
 
 func UpdateProductVariant(ctx context.Context, config *common.Config, request UpdateProductVariantRequest) (*UpdateProductVariantResponse, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, request.ProductID, request.VariantID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/variants/%s", request.ProductID, request.VariantID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -470,7 +506,7 @@ func UpdateProductVariant(ctx context.Context, config *common.Config, request Up
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("UpdateProductVariant", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateProductVariant", baseURL, body, resp.StatusCode)
 	}
 
 	var updatedVariant UpdateProductVariantResponse
@@ -482,14 +518,17 @@ func UpdateProductVariant(ctx context.Context, config *common.Config, request Up
 }
 
 func UpdateProductImage(ctx context.Context, config *common.Config, request UpdateProductImageRequest) (*UpdateProductImageResponse, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, request.ProductID, request.ImageID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/images/%s", request.ProductID, request.ImageID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -510,7 +549,7 @@ func UpdateProductImage(ctx context.Context, config *common.Config, request Upda
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("UpdateProductImage", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateProductImage", baseURL, body, resp.StatusCode)
 	}
 
 	var updatedImage UpdateProductImageResponse
@@ -526,9 +565,12 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 		return http.StatusBadRequest, fmt.Errorf("productID is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, productID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s", productID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, baseURL, nil)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -547,16 +589,19 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("DeleteProduct", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProduct", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil
 }
 
 func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) (int, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, productID, variantID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/variants/%s", productID, variantID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, baseURL, nil)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -574,16 +619,19 @@ func DeleteProductVariant(ctx context.Context, config *common.Config, productID,
 		if readErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("DeleteProductVariant", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProductVariant", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil
 }
 
 func DeleteProductImage(ctx context.Context, config *common.Config, productID, imageID string) (int, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, productID, imageID)
+	baseURL, err := common.BuildBaseURL(config, ProductsAPIVersion, fmt.Sprintf("commerce/products/%s/images/%s", productID, imageID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, baseURL, nil)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -601,7 +649,7 @@ func DeleteProductImage(ctx context.Context, config *common.Config, productID, i
 		if readErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("DeleteProductImage", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProductImage", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil

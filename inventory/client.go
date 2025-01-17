@@ -18,7 +18,11 @@ func RetrieveAllInventory(ctx context.Context, config *common.Config, params com
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, InventoryAPIVersion, "commerce/inventory")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -70,10 +74,12 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 	}
 
 	idsPath := strings.Join(inventoryIDs, ",")
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory", InventoryAPIVersion)
-	endpoint := fmt.Sprintf("%s/%s", baseURL, idsPath)
+	baseURL, err := common.BuildBaseURL(config, InventoryAPIVersion, fmt.Sprintf("commerce/inventory/%s", idsPath))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	u, err := url.Parse(endpoint)
+	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse URL: %w", err)
 	}
@@ -110,14 +116,17 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 }
 
 func AdjustStockQuantities(ctx context.Context, config *common.Config, request AdjustStockQuantitiesRequest) (int, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory/adjustments", InventoryAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, InventoryAPIVersion, "commerce/inventory/adjustments")
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -144,5 +153,5 @@ func AdjustStockQuantities(ctx context.Context, config *common.Config, request A
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", err)
 	}
-	return resp.StatusCode, common.ParseErrorResponse("AdjustStockQuantities", url, body, resp.StatusCode)
+	return resp.StatusCode, common.ParseErrorResponse("AdjustStockQuantities", baseURL, body, resp.StatusCode)
 }

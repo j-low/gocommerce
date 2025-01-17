@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/j-low/gocommerce/common"
 )
@@ -16,7 +17,11 @@ func RetrieveAllProfiles(ctx context.Context, config *common.Config, params comm
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/profiles", ProfilesAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, ProfilesAPIVersion, "profiles")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -72,16 +77,17 @@ func RetrieveSpecificProfiles(ctx context.Context, config *common.Config, profil
 		return nil, fmt.Errorf("profileIDs cannot be empty")
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/profiles", ProfilesAPIVersion)
+	joinedIDs := strings.Join(profileIDs, ",")
+
+	baseURL, err := common.BuildBaseURL(config, ProfilesAPIVersion, fmt.Sprintf("profiles/%s", joinedIDs))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
-
-	queryParams := url.Values{}
-	queryParams.Add("ids", url.QueryEscape(fmt.Sprintf("%s", profileIDs)))
-
-	u.RawQuery = queryParams.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {

@@ -89,3 +89,13 @@ func validateTypeParam(productType string) error {
 
 	return nil
 }
+
+// BuildBaseURL constructs the appropriate base URL for API requests.
+// During tests, it uses the config.BaseURL if provided, otherwise defaults
+// to the Squarespace API URL.
+func BuildBaseURL(config *Config, version, path string) (string, error) {
+	if config.BaseURL != "" {
+		return fmt.Sprintf("%s/%s/%s", config.BaseURL, version, path), nil
+	}
+	return fmt.Sprintf("https://api.squarespace.com/%s/%s", version, path), nil
+}
