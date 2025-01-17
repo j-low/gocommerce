@@ -12,284 +12,312 @@ import (
 )
 
 func CreateWebhookSubscription(ctx context.Context, config *common.Config, request WebhookSubscriptionRequest) (*WebhookSubscription, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  if len(request.Topics) == 0 {
-    return nil, fmt.Errorf("topics cannot be empty")
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	if len(request.Topics) == 0 {
+		return nil, fmt.Errorf("topics cannot be empty")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create webhook subscription: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create webhook subscription: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusCreated {
-    return nil, common.ParseErrorResponse("CreateWebhookSubscription", url, body, resp.StatusCode)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
 
-  var response WebhookSubscription
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusCreated {
+		return nil, common.ParseErrorResponse("CreateWebhookSubscription", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response WebhookSubscription
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }
 
 func UpdateWebhookSubscription(ctx context.Context, config *common.Config, subscriptionID string, request WebhookSubscriptionRequest) (*WebhookSubscription, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  if subscriptionID == "" {
-    return nil, fmt.Errorf("subscriptionID cannot be empty")
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
 
-  if request.Topics != nil && len(request.Topics) == 0 {
-    return nil, fmt.Errorf("topics cannot be an empty array")
-  }
+	if subscriptionID == "" {
+		return nil, fmt.Errorf("subscriptionID cannot be empty")
+	}
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	if request.Topics != nil && len(request.Topics) == 0 {
+		return nil, fmt.Errorf("topics cannot be an empty array")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to update webhook subscription: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update webhook subscription: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("UpdateWebhookSubscription", url, body, resp.StatusCode)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
 
-  var response WebhookSubscription
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("UpdateWebhookSubscription", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response WebhookSubscription
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }
 
 func RetrieveAllWebhookSubscriptions(ctx context.Context, config *common.Config) (*RetrieveAllWebhookSubscriptionsResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to retrieve webhook subscriptions: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve webhook subscriptions: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("RetrieveAllWebhookSubscriptions", url, body, resp.StatusCode)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  var response RetrieveAllWebhookSubscriptionsResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("RetrieveAllWebhookSubscriptions", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response RetrieveAllWebhookSubscriptionsResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }
 
 func RetrieveSpecificWebhookSubscription(ctx context.Context, config *common.Config, subscriptionID string) (*WebhookSubscription, error) {
-  if subscriptionID == "" {
-    return nil, fmt.Errorf("subscriptionID cannot be empty")
-  }
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	if subscriptionID == "" {
+		return nil, fmt.Errorf("subscriptionID cannot be empty")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to retrieve webhook subscription: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve webhook subscription: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("RetrieveSpecificWebhookSubscription", url, body, resp.StatusCode)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  var response WebhookSubscription
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("RetrieveSpecificWebhookSubscription", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response WebhookSubscription
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }
 
-func DeleteWebhookSubscription(ctx context.Context, config *common.Config, subscriptionID string) error {
-  if subscriptionID == "" {
-    return fmt.Errorf("subscriptionID cannot be empty")
-  }
+func DeleteWebhookSubscription(ctx context.Context, config *common.Config, subscriptionID string) (int, error) {
+	if config.AccessToken == "" {
+		return http.StatusBadRequest, fmt.Errorf("access token is required")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	if subscriptionID == "" {
+		return http.StatusBadRequest, fmt.Errorf("subscriptionID cannot be empty")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
-  if err != nil {
-    return fmt.Errorf("failed to create request: %w", err)
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return fmt.Errorf("failed to delete webhook subscription: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  if resp.StatusCode != http.StatusNoContent {
-    body, readErr := io.ReadAll(resp.Body)
-    if readErr != nil {
-      return fmt.Errorf("failed to read response body: %w", readErr)
-    }
-    return common.ParseErrorResponse("DeleteWebhookSubscription", url, body, resp.StatusCode)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to delete webhook subscription: %w", err)
+	}
+	defer resp.Body.Close()
 
-  return nil
+	if resp.StatusCode != http.StatusNoContent {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
+		}
+		return resp.StatusCode, common.ParseErrorResponse("DeleteWebhookSubscription", url, body, resp.StatusCode)
+	}
+
+	return resp.StatusCode, nil
 }
 
 func SendTestNotification(ctx context.Context, config *common.Config, subscriptionID string, request SendTestNotificationRequest) (*SendTestNotificationResponse, error) {
-  if subscriptionID == "" {
-    return nil, fmt.Errorf("subscriptionID cannot be empty")
-  }
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/sendTestNotification", WebhooksAPIVersion, subscriptionID)
+	if subscriptionID == "" {
+		return nil, fmt.Errorf("subscriptionID cannot be empty")
+	}
 
-  if request.Topic == "" {
-    return nil, fmt.Errorf("topic is required")
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/sendTestNotification", WebhooksAPIVersion, subscriptionID)
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	if request.Topic == "" {
+		return nil, fmt.Errorf("topic is required")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to send test notification: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send test notification: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("SendTestNotification", url, body, resp.StatusCode)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
 
-  var response SendTestNotificationResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("SendTestNotification", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response SendTestNotificationResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }
 
 func RotateSubscriptionSecret(ctx context.Context, config *common.Config, subscriptionID string) (*RotateSubscriptionSecretResponse, error) {
-  if subscriptionID == "" {
-    return nil, fmt.Errorf("subscriptionID cannot be empty")
-  }
+	if config.AccessToken == "" {
+		return nil, fmt.Errorf("access token is required")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/rotateSecret", WebhooksAPIVersion, subscriptionID)
+	if subscriptionID == "" {
+		return nil, fmt.Errorf("subscriptionID cannot be empty")
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/rotateSecret", WebhooksAPIVersion, subscriptionID)
 
-  req.Header.Set("Authorization", "Bearer "+config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to rotate subscription secret: %w", err)
-  }
-  defer resp.Body.Close()
+	req.Header.Set("Authorization", "Bearer "+config.AccessToken)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to rotate subscription secret: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("RotateSubscriptionSecret", url, body, resp.StatusCode)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  var response RotateSubscriptionSecretResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("RotateSubscriptionSecret", url, body, resp.StatusCode)
+	}
 
-  return &response, nil
+	var response RotateSubscriptionSecretResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
+
+	return &response, nil
 }

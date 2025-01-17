@@ -35,7 +35,7 @@ func RetrieveAllInventory(ctx context.Context, config *common.Config, params com
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
 	resp, err := config.Client.Do(req)
@@ -49,16 +49,16 @@ func RetrieveAllInventory(ctx context.Context, config *common.Config, params com
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-  if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK {
 		return nil, common.ParseErrorResponse("RetrieveAllInventory", u.String(), body, resp.StatusCode)
 	}
 
-  var response RetrieveAllInventoryResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var response RetrieveAllInventoryResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &response, nil
+	return &response, nil
 }
 
 func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inventoryIDs []string) (*RetrieveSpecificInventoryResponse, error) {
@@ -109,7 +109,7 @@ func RetrieveSpecificInventory(ctx context.Context, config *common.Config, inven
 	return &response, nil
 }
 
-func AdjustStockQuantities(ctx context.Context, config *common.Config, request AdjustStockQuantitiesRequest) (status int, err error) {
+func AdjustStockQuantities(ctx context.Context, config *common.Config, request AdjustStockQuantitiesRequest) (int, error) {
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/inventory/adjustments", InventoryAPIVersion)
 
 	reqBody, err := json.Marshal(request)
@@ -122,7 +122,7 @@ func AdjustStockQuantities(ctx context.Context, config *common.Config, request A
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 

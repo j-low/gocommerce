@@ -88,7 +88,7 @@ func RetrieveSpecificTransactions(ctx context.Context, config *common.Config, tr
 
 	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-	
+
 	resp, err := config.Client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to execute request: %w", err)

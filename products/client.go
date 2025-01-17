@@ -28,7 +28,7 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -55,99 +55,99 @@ func CreateProduct(ctx context.Context, config *common.Config, request CreatePro
 }
 
 func CreateProductVariant(ctx context.Context, config *common.Config, request CreateProductVariantRequest) (*CreateProductVariantResponse, error) {
-  if request.ProductID == "" {
-    return nil, fmt.Errorf("productID is required")
-  }
+	if request.ProductID == "" {
+		return nil, fmt.Errorf("productID is required")
+	}
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants", ProductsAPIVersion, request.ProductID)
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants", ProductsAPIVersion, request.ProductID)
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create product variant: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create product variant: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  if resp.StatusCode != http.StatusCreated {
-    return nil, common.ParseErrorResponse("CreateProductVariant", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusCreated {
+		return nil, common.ParseErrorResponse("CreateProductVariant", url, body, resp.StatusCode)
+	}
 
-  var createdVariant CreateProductVariantResponse
-  if err := json.Unmarshal(body, &createdVariant); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var createdVariant CreateProductVariantResponse
+	if err := json.Unmarshal(body, &createdVariant); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &createdVariant, nil
+	return &createdVariant, nil
 }
 
 func UploadProductImage(ctx context.Context, config *common.Config, productID, filePath string) (*UploadProductImageResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images", ProductsAPIVersion, productID)
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images", ProductsAPIVersion, productID)
 
-  file, err := os.Open(filePath)
-  if err != nil {
-    return nil, fmt.Errorf("failed to open file: %w", err)
-  }
-  defer file.Close()
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
 
-  var requestBody bytes.Buffer
-  writer := multipart.NewWriter(&requestBody)
-  part, err := writer.CreateFormFile("file", file.Name())
-  if err != nil {
-    return nil, fmt.Errorf("failed to create form file: %w", err)
-  }
-  if _, err := io.Copy(part, file); err != nil {
-    return nil, fmt.Errorf("failed to copy file content: %w", err)
-  }
-  if err := writer.Close(); err != nil {
-    return nil, fmt.Errorf("failed to close writer: %w", err)
-  }
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+	part, err := writer.CreateFormFile("file", file.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+	if _, err := io.Copy(part, file); err != nil {
+		return nil, fmt.Errorf("failed to copy file content: %w", err)
+	}
+	if err := writer.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close writer: %w", err)
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &requestBody)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", writer.FormDataContentType())
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &requestBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to upload product image: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload product image: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
-  if resp.StatusCode != http.StatusAccepted {
-    return nil, common.ParseErrorResponse("UploadProductImage", url, body, resp.StatusCode)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
+	if resp.StatusCode != http.StatusAccepted {
+		return nil, common.ParseErrorResponse("UploadProductImage", url, body, resp.StatusCode)
+	}
 
-  var response UploadProductImageResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var response UploadProductImageResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &response, nil
+	return &response, nil
 }
 
 func RetrieveAllStorePages(ctx context.Context, config *common.Config, params common.QueryParams) (*RetrieveAllStorePagesResponse, error) {
@@ -159,18 +159,18 @@ func RetrieveAllStorePages(ctx context.Context, config *common.Config, params co
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
 	}
-	
+
 	if params.Cursor != "" {
 		query := u.Query()
 		query.Set("cursor", params.Cursor)
 		u.RawQuery = query.Encode()
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
 	resp, err := config.Client.Do(req)
@@ -227,7 +227,7 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, params comm
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
 	resp, err := config.Client.Do(req)
@@ -248,90 +248,90 @@ func RetrieveAllProducts(ctx context.Context, config *common.Config, params comm
 	if err := json.Unmarshal(body, &response); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
 	}
-	
+
 	return &response, nil
 }
 
 func RetrieveSpecificProducts(ctx context.Context, config *common.Config, productIDs []string) (*RetrieveSpecificProductsResponse, error) {
-  if len(productIDs) == 0 {
+	if len(productIDs) == 0 {
 		return nil, fmt.Errorf("at least one product ID is required")
 	}
 	if len(productIDs) > 50 {
 		return nil, fmt.Errorf("cannot retrieve more than 50 products at once")
 	}
 
-  joinedIDs := strings.Join(productIDs, ",")
+	joinedIDs := strings.Join(productIDs, ",")
 
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, joinedIDs)
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s", ProductsAPIVersion, joinedIDs)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to retrieve specific products: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve specific products: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, err := io.ReadAll(resp.Body)
-  if err != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", err)
-  }
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("RetrieveSpecificProducts", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("RetrieveSpecificProducts", url, body, resp.StatusCode)
+	}
 
-  var response RetrieveSpecificProductsResponse
-  if err := json.Unmarshal(body, &response); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var response RetrieveSpecificProductsResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &response, nil
+	return &response, nil
 }
 
 func GetProductImageUploadStatus(ctx context.Context, config *common.Config, productID, imageID string) (*GetProductImageUploadStatusResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/status", ProductsAPIVersion, productID, imageID)
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/status", ProductsAPIVersion, productID, imageID)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to get product image upload status: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get product image upload status: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("GetProductImageUploadStatus", url, body, resp.StatusCode)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("GetProductImageUploadStatus", url, body, resp.StatusCode)
+	}
 
-  var statusResponse GetProductImageUploadStatusResponse
-  if err := json.Unmarshal(body, &statusResponse); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var statusResponse GetProductImageUploadStatusResponse
+	if err := json.Unmarshal(body, &statusResponse); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &statusResponse, nil
+	return &statusResponse, nil
 }
 
-func AssignProductImageToVariant(ctx context.Context, config *common.Config, request AssignProductImageToVariantRequest) (status int, err error) {
+func AssignProductImageToVariant(ctx context.Context, config *common.Config, request AssignProductImageToVariantRequest) (int, error) {
 	if ctx == nil {
 		return http.StatusBadRequest, fmt.Errorf("context cannot be nil")
 	}
-	
+
 	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s/image", ProductsAPIVersion, request.ProductID, request.VariantID)
 
 	reqBody, err := json.Marshal(request)
@@ -344,7 +344,7 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -353,7 +353,7 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 		return http.StatusBadRequest, fmt.Errorf("failed to assign image to variant: %w", err)
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusNoContent {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -365,38 +365,38 @@ func AssignProductImageToVariant(ctx context.Context, config *common.Config, req
 	return http.StatusNoContent, nil
 }
 
-func ReorderProductImage(ctx context.Context, config *common.Config, request ReorderProductImageRequest) (status int, err error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/order", ProductsAPIVersion, request.ProductID, request.ImageID)
+func ReorderProductImage(ctx context.Context, config *common.Config, request ReorderProductImageRequest) (int, error) {
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s/order", ProductsAPIVersion, request.ProductID, request.ImageID)
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
-  }
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to reorder product image: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to reorder product image: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusNoContent {
-    body, readErr := io.ReadAll(resp.Body)
-    if readErr != nil {
-      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
-    }
-    return resp.StatusCode, common.ParseErrorResponse("ReorderProductImage", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusNoContent {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
+		}
+		return resp.StatusCode, common.ParseErrorResponse("ReorderProductImage", url, body, resp.StatusCode)
+	}
 
-  return http.StatusNoContent, nil
+	return http.StatusNoContent, nil
 }
 
 func UpdateProduct(ctx context.Context, config *common.Config, productID string, request UpdateProductRequest) (*UpdateProductResponse, error) {
@@ -416,7 +416,7 @@ func UpdateProduct(ctx context.Context, config *common.Config, productID string,
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -454,7 +454,7 @@ func UpdateProductVariant(ctx context.Context, config *common.Config, request Up
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 	req.Header.Set("Content-Type", "application/json")
 
@@ -482,46 +482,46 @@ func UpdateProductVariant(ctx context.Context, config *common.Config, request Up
 }
 
 func UpdateProductImage(ctx context.Context, config *common.Config, request UpdateProductImageRequest) (*UpdateProductImageResponse, error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, request.ProductID, request.ImageID)
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, request.ProductID, request.ImageID)
 
-  reqBody, err := json.Marshal(request)
-  if err != nil {
-    return nil, fmt.Errorf("failed to marshal request body: %w", err)
-  }
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request body: %w", err)
+	}
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
-  if err != nil {
-    return nil, fmt.Errorf("failed to create request: %w", err)
-  }
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
 
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
-  req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req.Header.Set("Content-Type", "application/json")
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return nil, fmt.Errorf("failed to update product image: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update product image: %w", err)
+	}
+	defer resp.Body.Close()
 
-  body, readErr := io.ReadAll(resp.Body)
-  if readErr != nil {
-    return nil, fmt.Errorf("failed to read response body: %w", readErr)
-  }
+	body, readErr := io.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", readErr)
+	}
 
-  if resp.StatusCode != http.StatusOK {
-    return nil, common.ParseErrorResponse("UpdateProductImage", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusOK {
+		return nil, common.ParseErrorResponse("UpdateProductImage", url, body, resp.StatusCode)
+	}
 
-  var updatedImage UpdateProductImageResponse
-  if err := json.Unmarshal(body, &updatedImage); err != nil {
-    return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
-  }
+	var updatedImage UpdateProductImageResponse
+	if err := json.Unmarshal(body, &updatedImage); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal response body: %w", err)
+	}
 
-  return &updatedImage, nil
+	return &updatedImage, nil
 }
 
-func DeleteProduct(ctx context.Context, config *common.Config, productID string) (status int, err error) {
+func DeleteProduct(ctx context.Context, config *common.Config, productID string) (int, error) {
 	if productID == "" {
 		return http.StatusBadRequest, fmt.Errorf("productID is required")
 	}
@@ -533,7 +533,7 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer " + config.APIKey)
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
 	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
 	resp, err := config.Client.Do(req)
@@ -553,56 +553,56 @@ func DeleteProduct(ctx context.Context, config *common.Config, productID string)
 	return http.StatusNoContent, nil
 }
 
-func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) (status int, err error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, productID, variantID)
+func DeleteProductVariant(ctx context.Context, config *common.Config, productID, variantID string) (int, error) {
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/variants/%s", ProductsAPIVersion, productID, variantID)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
-  }
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to delete product variant: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to delete product variant: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusNoContent {
-    body, readErr := io.ReadAll(resp.Body)
-    if readErr != nil {
-      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
-    }
-    return resp.StatusCode, common.ParseErrorResponse("DeleteProductVariant", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusNoContent {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
+		}
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProductVariant", url, body, resp.StatusCode)
+	}
 
-  return http.StatusNoContent, nil
+	return http.StatusNoContent, nil
 }
 
-func DeleteProductImage(ctx context.Context, config *common.Config, productID, imageID string) (status int, err error) {
-  url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, productID, imageID)
+func DeleteProductImage(ctx context.Context, config *common.Config, productID, imageID string) (int, error) {
+	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/products/%s/images/%s", ProductsAPIVersion, productID, imageID)
 
-  req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
-  }
-  req.Header.Set("Authorization", "Bearer " + config.APIKey)
-  req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+config.APIKey)
+	req.Header.Set("User-Agent", common.SetUserAgent(config.UserAgent))
 
-  resp, err := config.Client.Do(req)
-  if err != nil {
-    return http.StatusBadRequest, fmt.Errorf("failed to delete product image: %w", err)
-  }
-  defer resp.Body.Close()
+	resp, err := config.Client.Do(req)
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to delete product image: %w", err)
+	}
+	defer resp.Body.Close()
 
-  if resp.StatusCode != http.StatusNoContent {
-    body, readErr := io.ReadAll(resp.Body)
-    if readErr != nil {
-      return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
-    }
-    return resp.StatusCode, common.ParseErrorResponse("DeleteProductImage", url, body, resp.StatusCode)
-  }
+	if resp.StatusCode != http.StatusNoContent {
+		body, readErr := io.ReadAll(resp.Body)
+		if readErr != nil {
+			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
+		}
+		return resp.StatusCode, common.ParseErrorResponse("DeleteProductImage", url, body, resp.StatusCode)
+	}
 
-  return http.StatusNoContent, nil
+	return http.StatusNoContent, nil
 }

@@ -11,17 +11,17 @@ func ParseErrorResponse(endpoint string, url string, body []byte, statusCode int
 	var apiError APIError
 
 	if err := json.Unmarshal(body, &apiError); err != nil {
-		return fmt.Errorf("unexpected status code: %d, body: %s", statusCode, string(body))
+		return fmt.Errorf("%s: error unmarshalling response body: status: %d", endpoint, statusCode)
 	}
 
 	errorFormat := "%s url: %s: status: %d, type: %s"
 	errorArgs := []interface{}{endpoint, url, statusCode, apiError.Type}
-	
+
 	if apiError.Subtype != "" {
 		errorFormat += ", subtype: %s"
 		errorArgs = append(errorArgs, apiError.Subtype)
 	}
-	
+
 	errorFormat += ", message: %s"
 	errorArgs = append(errorArgs, apiError.Message)
 
