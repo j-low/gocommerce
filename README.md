@@ -17,6 +17,29 @@ The package provides bindings for the following Squarespace Commerce APIs:
 - [Transactions](https://developers.squarespace.com/commerce-apis/transactions-overview)
 - [Webhook Subscriptions](https://developers.squarespace.com/commerce-apis/webhook-subscriptions-overview)
 
+Usage
+
+```
+import (
+  "context"
+  "fmt"
+  "net/http"
+
+  "github.com/j-low/gocommerce/products"
+)
+
+config := common.Config{
+  APIKey:      "my_api_key-999",
+  UserAgent:   "my_user-agent-999",
+  Client:      http.DefaultClient,
+}
+
+resp, err := products.DeleteProduct(ctx, &config, "some-product-id-999")
+if err != nil {
+  return fmt.Println(err)
+}
+```
+
 ## License
 
 MIT License
