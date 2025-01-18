@@ -13,14 +13,17 @@ import (
 )
 
 func CreateOrder(ctx context.Context, config *common.Config, request CreateOrderRequest) (*Order, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, OrdersAPIVersion, "commerce/orders")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -45,7 +48,7 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse("CreateOrder", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateOrder", baseURL, body, resp.StatusCode)
 	}
 
 	var response Order
@@ -57,14 +60,17 @@ func CreateOrder(ctx context.Context, config *common.Config, request CreateOrder
 }
 
 func FulfillOrder(ctx context.Context, config *common.Config, orderID string, request FulfillOrderRequest) (int, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders/%s/fulfillments", OrdersAPIVersion, orderID)
+	baseURL, err := common.BuildBaseURL(config, OrdersAPIVersion, fmt.Sprintf("commerce/orders/%s/fulfillments", orderID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	reqBody, err := json.Marshal(request)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -84,7 +90,7 @@ func FulfillOrder(ctx context.Context, config *common.Config, orderID string, re
 		if readErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("FulfillOrder", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("FulfillOrder", baseURL, body, resp.StatusCode)
 	}
 
 	return http.StatusNoContent, nil
@@ -95,7 +101,11 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, params common
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders", OrdersAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, OrdersAPIVersion, "commerce/orders")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -148,9 +158,12 @@ func RetrieveAllOrders(ctx context.Context, config *common.Config, params common
 }
 
 func RetrieveSpecificOrder(ctx context.Context, config *common.Config, orderID string) (*Order, error) {
-	url := fmt.Sprintf("https://api.squarespace.com/%s/commerce/orders/%s", OrdersAPIVersion, orderID)
+	baseURL, err := common.BuildBaseURL(config, OrdersAPIVersion, fmt.Sprintf("commerce/orders/%s", orderID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -170,7 +183,7 @@ func RetrieveSpecificOrder(ctx context.Context, config *common.Config, orderID s
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RetrieveSpecificOrder", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificOrder", baseURL, body, resp.StatusCode)
 	}
 
 	var response Order

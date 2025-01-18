@@ -37,26 +37,26 @@ type CreateProductResponse struct {
 	Images            []ProductImage   `json:"images,omitempty"`
 	CreatedOn         string           `json:"createdOn"`
 	ModifiedOn        string           `json:"modifiedOn"`
-	SEOOptions        *SEOOptions      `json:"seoOptions"`
+	SEOOptions        SEOOptions       `json:"seoOptions"`
 }
 
 type CreateProductVariantRequest struct {
-	ProductID            string                `json:"-"`
-	SKU                  string                `json:"sku"`
-	Pricing              Pricing               `json:"pricing"`
-	Stock                *Stock                `json:"stock,omitempty"`
-	Attributes           map[string]string     `json:"attributes,omitempty"`
-	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	ProductID            string               `json:"-"`
+	SKU                  string               `json:"sku"`
+	Pricing              Pricing              `json:"pricing"`
+	Stock                Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string    `json:"attributes,omitempty"`
+	ShippingMeasurements ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
 type CreateProductVariantResponse struct {
-	ID                   string                `json:"id"`
-	SKU                  string                `json:"sku"`
-	Pricing              Pricing               `json:"pricing"`
-	Stock                *Stock                `json:"stock,omitempty"`
-	Attributes           map[string]string     `json:"attributes,omitempty"`
-	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
-	Image                *ProductImage         `json:"image,omitempty"`
+	ID                   string               `json:"id"`
+	SKU                  string               `json:"sku"`
+	Pricing              Pricing              `json:"pricing"`
+	Stock                Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string    `json:"attributes,omitempty"`
+	ShippingMeasurements ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	Image                ProductImage         `json:"image,omitempty"`
 }
 
 type UploadProductImageResponse struct {
@@ -123,22 +123,22 @@ type UpdateProductResponse struct {
 }
 
 type UpdateProductVariantRequest struct {
-	ProductID            string                `json:"-"`
-	VariantID            string                `json:"-"`
-	SKU                  string                `json:"sku,omitempty"`
-	Pricing              *Pricing              `json:"pricing,omitempty"`
-	Attributes           map[string]string     `json:"attributes,omitempty"`
-	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	ProductID            string               `json:"-"`
+	VariantID            string               `json:"-"`
+	SKU                  string               `json:"sku,omitempty"`
+	Pricing              Pricing              `json:"pricing,omitempty"`
+	Attributes           map[string]string    `json:"attributes,omitempty"`
+	ShippingMeasurements ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
 type UpdateProductVariantResponse struct {
-	ID                   string                `json:"id"`
-	SKU                  string                `json:"sku"`
-	Pricing              Pricing               `json:"pricing"`
-	Stock                *Stock                `json:"stock,omitempty"`
-	Attributes           map[string]string     `json:"attributes"`
-	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements"`
-	Image                *ProductImage         `json:"image,omitempty"`
+	ID                   string               `json:"id"`
+	SKU                  string               `json:"sku"`
+	Pricing              Pricing              `json:"pricing"`
+	Stock                Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string    `json:"attributes"`
+	ShippingMeasurements ShippingMeasurements `json:"shippingMeasurements"`
+	Image                ProductImage         `json:"image,omitempty"`
 }
 
 type UpdateProductImageRequest struct {
@@ -175,19 +175,19 @@ type Product struct {
 	VariantAttributes []string         `json:"variantAttributes"`
 	Variants          []ProductVariant `json:"variants"`
 	Images            []ProductImage   `json:"images"`
-	Pricing           *Pricing         `json:"pricing,omitempty"`
-	DigitalGood       *DigitalGood     `json:"digitalGood,omitempty"`
+	Pricing           Pricing          `json:"pricing,omitempty"`
+	DigitalGood       DigitalGood      `json:"digitalGood,omitempty"`
 	CreatedOn         time.Time        `json:"createdOn"`
 	ModifiedOn        time.Time        `json:"modifiedOn"`
 }
 
 type ProductVariant struct {
-	ID                   string                `json:"id,omitempty"`
-	SKU                  string                `json:"sku"`
-	Pricing              Pricing               `json:"pricing"`
-	Stock                *Stock                `json:"stock,omitempty"`
-	Attributes           map[string]string     `json:"attributes,omitempty"`
-	ShippingMeasurements *ShippingMeasurements `json:"shippingMeasurements,omitempty"`
+	ID                   string               `json:"id,omitempty"`
+	SKU                  string               `json:"sku"`
+	Pricing              Pricing              `json:"pricing"`
+	Stock                Stock                `json:"stock,omitempty"`
+	Attributes           map[string]string    `json:"attributes,omitempty"`
+	ShippingMeasurements ShippingMeasurements `json:"shippingMeasurements,omitempty"`
 }
 
 type SEOOptions struct {
@@ -196,9 +196,9 @@ type SEOOptions struct {
 }
 
 type Pricing struct {
-	BasePrice *common.Amount `json:"basePrice,omitempty"`
-	OnSale    bool           `json:"onSale,omitempty"`
-	SalePrice *common.Amount `json:"salePrice,omitempty"`
+	BasePrice common.Amount `json:"basePrice,omitempty"`
+	OnSale    bool          `json:"onSale,omitempty"`
+	SalePrice common.Amount `json:"salePrice,omitempty"`
 }
 
 type DigitalGood struct {
@@ -212,8 +212,8 @@ type Stock struct {
 }
 
 type ShippingMeasurements struct {
-	Weight     *Weight     `json:"weight,omitempty"`
-	Dimensions *Dimensions `json:"dimensions,omitempty"`
+	Weight     Weight     `json:"weight,omitempty"`
+	Dimensions Dimensions `json:"dimensions,omitempty"`
 }
 
 type Weight struct {

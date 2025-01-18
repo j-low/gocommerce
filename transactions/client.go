@@ -17,7 +17,11 @@ func RetrieveAllTransactions(ctx context.Context, config *common.Config, params 
 		return nil, fmt.Errorf("invalid query parameters: %w", err)
 	}
 
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/transactions", TransactionsAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, TransactionsAPIVersion, "commerce/transactions")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -75,7 +79,11 @@ func RetrieveSpecificTransactions(ctx context.Context, config *common.Config, tr
 	}
 
 	ids := url.PathEscape(strings.Join(transactionIDs, ","))
-	baseURL := fmt.Sprintf("https://api.squarespace.com/%s/commerce/transactions/%s", TransactionsAPIVersion, ids)
+	baseURL, err := common.BuildBaseURL(config, TransactionsAPIVersion, fmt.Sprintf("commerce/transactions/%s", ids))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
+
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse base URL: %w", err)
@@ -101,7 +109,7 @@ func RetrieveSpecificTransactions(ctx context.Context, config *common.Config, tr
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RetrieveSpecificTransactions", u.String(), body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificTransactions", baseURL, body, resp.StatusCode)
 	}
 
 	var response RetrieveSpecificTransactionsResponse

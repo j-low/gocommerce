@@ -14,6 +14,7 @@ const (
 type Config struct {
 	APIKey         string
 	UserAgent      string
+	BaseURL        string
 	AccessToken    string
 	Client         *http.Client
 	IdempotencyKey *uuid.UUID

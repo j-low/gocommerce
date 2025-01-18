@@ -16,7 +16,10 @@ func CreateWebhookSubscription(ctx context.Context, config *common.Config, reque
 		return nil, fmt.Errorf("access token is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, "webhook_subscriptions")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	if len(request.Topics) == 0 {
 		return nil, fmt.Errorf("topics cannot be empty")
@@ -27,7 +30,7 @@ func CreateWebhookSubscription(ctx context.Context, config *common.Config, reque
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -48,7 +51,7 @@ func CreateWebhookSubscription(ctx context.Context, config *common.Config, reque
 	}
 
 	if resp.StatusCode != http.StatusCreated {
-		return nil, common.ParseErrorResponse("CreateWebhookSubscription", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("CreateWebhookSubscription", baseURL, body, resp.StatusCode)
 	}
 
 	var response WebhookSubscription
@@ -64,7 +67,10 @@ func UpdateWebhookSubscription(ctx context.Context, config *common.Config, subsc
 		return nil, fmt.Errorf("access token is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, fmt.Sprintf("webhook_subscriptions/%s", subscriptionID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	if subscriptionID == "" {
 		return nil, fmt.Errorf("subscriptionID cannot be empty")
@@ -79,7 +85,7 @@ func UpdateWebhookSubscription(ctx context.Context, config *common.Config, subsc
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -100,7 +106,7 @@ func UpdateWebhookSubscription(ctx context.Context, config *common.Config, subsc
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("UpdateWebhookSubscription", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("UpdateWebhookSubscription", baseURL, body, resp.StatusCode)
 	}
 
 	var response WebhookSubscription
@@ -116,9 +122,12 @@ func RetrieveAllWebhookSubscriptions(ctx context.Context, config *common.Config)
 		return nil, fmt.Errorf("access token is required")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions", WebhooksAPIVersion)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, "webhook_subscriptions")
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -138,7 +147,7 @@ func RetrieveAllWebhookSubscriptions(ctx context.Context, config *common.Config)
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RetrieveAllWebhookSubscriptions", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveAllWebhookSubscriptions", baseURL, body, resp.StatusCode)
 	}
 
 	var response RetrieveAllWebhookSubscriptionsResponse
@@ -158,9 +167,12 @@ func RetrieveSpecificWebhookSubscription(ctx context.Context, config *common.Con
 		return nil, fmt.Errorf("subscriptionID cannot be empty")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, fmt.Sprintf("webhook_subscriptions/%s", subscriptionID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -180,7 +192,7 @@ func RetrieveSpecificWebhookSubscription(ctx context.Context, config *common.Con
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RetrieveSpecificWebhookSubscription", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RetrieveSpecificWebhookSubscription", baseURL, body, resp.StatusCode)
 	}
 
 	var response WebhookSubscription
@@ -200,9 +212,12 @@ func DeleteWebhookSubscription(ctx context.Context, config *common.Config, subsc
 		return http.StatusBadRequest, fmt.Errorf("subscriptionID cannot be empty")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s", WebhooksAPIVersion, subscriptionID)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, fmt.Sprintf("webhook_subscriptions/%s", subscriptionID))
+	if err != nil {
+		return http.StatusBadRequest, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, baseURL, nil)
 	if err != nil {
 		return http.StatusBadRequest, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -221,7 +236,7 @@ func DeleteWebhookSubscription(ctx context.Context, config *common.Config, subsc
 		if readErr != nil {
 			return http.StatusBadRequest, fmt.Errorf("failed to read response body: %w", readErr)
 		}
-		return resp.StatusCode, common.ParseErrorResponse("DeleteWebhookSubscription", url, body, resp.StatusCode)
+		return resp.StatusCode, common.ParseErrorResponse("DeleteWebhookSubscription", baseURL, body, resp.StatusCode)
 	}
 
 	return resp.StatusCode, nil
@@ -236,7 +251,10 @@ func SendTestNotification(ctx context.Context, config *common.Config, subscripti
 		return nil, fmt.Errorf("subscriptionID cannot be empty")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/sendTestNotification", WebhooksAPIVersion, subscriptionID)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, fmt.Sprintf("webhook_subscriptions/%s/actions/sendTestNotification", subscriptionID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
 	if request.Topic == "" {
 		return nil, fmt.Errorf("topic is required")
@@ -247,7 +265,7 @@ func SendTestNotification(ctx context.Context, config *common.Config, subscripti
 		return nil, fmt.Errorf("failed to marshal request body: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(reqBody))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -268,7 +286,7 @@ func SendTestNotification(ctx context.Context, config *common.Config, subscripti
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("SendTestNotification", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("SendTestNotification", baseURL, body, resp.StatusCode)
 	}
 
 	var response SendTestNotificationResponse
@@ -288,9 +306,12 @@ func RotateSubscriptionSecret(ctx context.Context, config *common.Config, subscr
 		return nil, fmt.Errorf("subscriptionID cannot be empty")
 	}
 
-	url := fmt.Sprintf("https://api.squarespace.com/%s/webhook_subscriptions/%s/actions/rotateSecret", WebhooksAPIVersion, subscriptionID)
+	baseURL, err := common.BuildBaseURL(config, WebhooksAPIVersion, fmt.Sprintf("webhook_subscriptions/%s/actions/rotateSecret", subscriptionID))
+	if err != nil {
+		return nil, fmt.Errorf("failed to build base URL: %w", err)
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, baseURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -311,7 +332,7 @@ func RotateSubscriptionSecret(ctx context.Context, config *common.Config, subscr
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, common.ParseErrorResponse("RotateSubscriptionSecret", url, body, resp.StatusCode)
+		return nil, common.ParseErrorResponse("RotateSubscriptionSecret", baseURL, body, resp.StatusCode)
 	}
 
 	var response RotateSubscriptionSecretResponse
