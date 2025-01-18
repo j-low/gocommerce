@@ -17,7 +17,15 @@ The package provides bindings for the following Squarespace Commerce APIs:
 - [Transactions](https://developers.squarespace.com/commerce-apis/transactions-overview)
 - [Webhook Subscriptions](https://developers.squarespace.com/commerce-apis/webhook-subscriptions-overview)
 
-Usage
+## Installation
+
+From your project root, run:
+
+```
+go get github.com/j-low/gocommerce@v1.0.1
+```
+
+## Usage
 
 ```
 import (
